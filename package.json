@@ -1,0 +1,22 @@
+{
+  "name": "icor-for-life-cockpit",
+  "private": true,
+  "version": "2.0.0",
+  "description": "ICOR for Life - Cockpit: a local, read-only viewer over your ICOR for Life folder (knowledge and Planner tasks), with an optional AI team folder for agents, insights and analytics.",
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "install:all": "npm install && npm --prefix web install",
+    "build": "npm --prefix web run build",
+    "start": "node server/server.js",
+    "serve": "npm run build && node server/server.js",
+    "dev:web": "npm --prefix web run dev",
+    "check:schema": "node scripts/check-schema-pin.mjs",
+    "test": "node scripts/check-schema-pin.mjs && node --test test/"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "yaml": "^2.8.1"
+  }
+}

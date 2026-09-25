@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "name": "ICOR for Life Scaffold",
+  "version": "2.0.0",
+  "implements": "icor-concepts/1",
+  "rooms": [
+    "02 Planner",
+    "04 Inner World"
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "generated_at": "2026-09-28T07:00:00Z",
+  "generated_local_date": "2026-09-28",
+  "scaffold_version": "2.0.0",
+  "week": {
+    "iso": "2026-W40",
+    "start": "2026-09-28",
+    "end": "2026-10-04",
+    "note": "02 Planner/Weeks/2026-W40.md"
+  },
+  "thresholds": {
+    "topics_shown": 5,
+    "attention_hot_score": 6,
+    "focus_max": 3,
+    "weekly_goals_max": 5,
+    "stale_after_hours": 6
+  },
+  "goals": {
+    "open": [
+      {
+        "name": "Grow a garden",
+        "path": "04 Inner World/My Life/Goals/Grow a garden.md",
+        "status": "not-achieved",
+        "key_element": null,
+        "target_date": null,
+        "days_to_target": null,
+        "carriers": {
+          "projects": [
+            "Launch the garden blog"
+          ],
+          "habits": [],
+          "workstreams": []
+        }
+      },
+      {
+        "name": "Escape attempt",
+        "path": "../../outside.md",
+        "status": "not-achieved",
+        "key_element": null,
+        "target_date": null,
+        "days_to_target": null,
+        "carriers": {
+          "projects": [],
+          "habits": [],
+          "workstreams": []
+        }
+      }
+    ],
+    "achieved_90d": []
+  },
+  "projects": {
+    "focus": [],
+    "active": [
+      {
+        "name": "Launch the garden blog",
+        "path": "04 Inner World/My Life/Projects/Launch the garden blog.md",
+        "focus_rank": 1,
+        "status": "active",
+        "goal": {
+          "name": "Grow a garden",
+          "status": "not-achieved"
+        },
+        "key_element": null
+      }
+    ]
+  },
+  "weekly_goals": {
+    "week": "2026-W40",
+    "path": "02 Planner/Weeks/2026-W40.md",
+    "items": [
+      {
+        "text": "Draft the first post",
+        "done": false
+      }
+    ],
+    "done_count": 0
+  },
+  "highlight": {
+    "date": "2026-09-28",
+    "text": "Write the outline",
+    "done": null,
+    "path": "02 Planner/Weeks/2026-W40.md",
+    "recent": []
+  },
+  "key_elements": [
+    {
+      "name": "Health",
+      "path": "04 Inner World/My Life/Key Elements/Health.md",
+      "open_goals": 1,
+      "active_projects": 0
+    }
+  ],
+  "topics": {
+    "hot": [
+      {
+        "name": "Composting",
+        "path": "04 Inner World/My Life/Topics/Composting.md",
+        "attention": {
+          "score": 7
+        }
+      }
+    ]
+  },
+  "today": {
+    "date": "2026-09-28",
+    "journal_entries": [],
+    "scratchpads": []
+  },
+  "findings": [],
+  "degraded": []
+}
