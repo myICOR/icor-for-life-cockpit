@@ -97,10 +97,34 @@ export function buildLauncher({ platform = platformKey(), port = 4317, cockpitDi
   return { file: spec.file, text: platform === 'windows' ? text.replace(/\r?\n/g, '\r\n') : text };
 }
 
+/**
+ * Where a folder really is once every symlink on its way is followed. The
+ * folder may not exist yet, so the deepest part that does exist is resolved
+ * and the rest is appended. Nothing is created here: a refused folder must
+ * never be made as a side effect of checking it.
+ */
+export function realTarget(dir) {
+  let head = path.resolve(dir);
+  const tail = [];
+  while (!fs.existsSync(head)) {
+    const up = path.dirname(head);
+    if (up === head) break;
+    tail.unshift(path.basename(head));
+    head = up;
+  }
+  let real = head;
+  try { real = fs.realpathSync(head); } catch { /* unreadable: judge the typed path */ }
+  return path.join(real, ...tail);
+}
+
 export function writeLauncher({ outDir, ...opts }) {
   const dir = path.resolve(outDir.replace(/^~(?=$|[\\/])/, os.homedir()));
-  const reason = autostartReason(dir);
-  if (reason) throw new Error(`Refusing to write a launcher into ${dir}: ${reason}. Pick a normal folder, for example your Desktop.`);
+  // Both the path as typed and the path it really leads to: a symlink named
+  // "Desktop" that points into LaunchAgents is refused like LaunchAgents.
+  for (const candidate of [dir, realTarget(dir)]) {
+    const reason = autostartReason(candidate);
+    if (reason) throw new Error(`Refusing to write a launcher into ${candidate}: ${reason}. Pick a normal folder, for example your Desktop.`);
+  }
   const { file, text } = buildLauncher(opts);
   fs.mkdirSync(dir, { recursive: true });
   const target = path.join(dir, file);

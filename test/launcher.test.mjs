@@ -98,6 +98,23 @@ test('the generator refuses every autostart folder', () => {
   assert.ok(AUTOSTART_SEGMENTS.includes('launchagents'));
 });
 
+test('a symlink that leads into an autostart folder is refused, and nothing is written there', () => {
+  const base = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'cockpit-link-')));
+  const agents = path.join(base, 'Library', 'LaunchAgents');
+  fs.mkdirSync(agents, { recursive: true });
+  const link = path.join(base, 'Desktop-link');
+  fs.symlinkSync(agents, link);
+  assert.throws(() => writeLauncher({ outDir: link, platform: 'mac' }), /Refusing to write a launcher/);
+  // A folder that does not exist yet, below the link, is judged by where it would land.
+  assert.throws(() => writeLauncher({ outDir: path.join(link, 'new', 'deeper'), platform: 'mac' }), /Refusing/);
+  assert.deepEqual(fs.readdirSync(agents), [], 'nothing may be created inside the autostart folder');
+  // Control: a symlink to a normal folder still works.
+  const normal = path.join(base, 'Apps');
+  fs.mkdirSync(normal);
+  fs.symlinkSync(normal, path.join(base, 'Apps-link'));
+  assert.ok(fs.existsSync(writeLauncher({ outDir: path.join(base, 'Apps-link'), platform: 'mac' })));
+});
+
 test('the generator refuses a Cockpit path a launcher cannot quote safely', () => {
   for (const bad of ['/tmp/a"b', '/tmp/$HOME', '/tmp/a`b`', '/tmp/100%', '/tmp/a\nb', '/tmp/R&D', '/tmp/a|b', '/tmp/a<b', '/tmp/a>b', '/tmp/a^b']) {
     assert.throws(() => checkCockpitDir(bad), /cannot carry safely/, JSON.stringify(bad));

@@ -160,6 +160,9 @@ as well (macOS may ask once for permission to read it).
 Then: **log out and log back in** (or restart). The Cockpit must not be running
 (`http://127.0.0.1:4317` does not open) until the person opens the launcher again.
 
+Last, delete the snapshot: `../cockpit-autostart-before.json` lists your computer's startup
+entries and is not needed any more.
+
 ## Updating
 
 1. Stop the Cockpit.
