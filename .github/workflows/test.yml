@@ -11,12 +11,23 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # 20 is the floor in package.json "engines"; 22 is the current LTS.
+        # A pass on a newer Node proves nothing about the floor.
+        node: [20, 22]
     steps:
+      # Action SHA pins before the repo goes public: D7 release gate (L4).
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - run: npm ci
-      - run: npm test
-      - run: npm --prefix web ci
+          node-version: ${{ matrix.node }}
+      # Exactly the install INSTALL.md tells members to run (npm ci, both lockfiles).
+      - run: npm run install:all
+      # Build before testing: the launcher smoke test skips without web/dist.
       - run: npm run build
+      - run: npm test

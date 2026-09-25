@@ -19,3 +19,6 @@ cockpit.settings.json.tmp-*
 .DS_Store
 **/.DS_Store
 dist-release/
+
+# Generated launchers hold this machine's absolute path (scripts/make-launcher.mjs)
+launchers/
