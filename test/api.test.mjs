@@ -196,3 +196,57 @@ test('asset by embed name resolves only inside 05 Assets', async () => {
   const sneaky = await api.get(`/api/asset?path=${encodeURIComponent('../../etc/garden.png')}`);
   assert.equal(sneaky.status, 200, 'a basename lookup never leaves 05 Assets');
 });
+
+// ---- D5 red tests (Vex M1, M2, L2) ------------------------------------------
+
+test('M1: transcript spellings that fold to the same file are refused', async () => {
+  for (const p of [
+    '06 AI Team//AI Sessions/2026-09-20-chat/conversation.md',
+    '06 AI Team/ai sessions/2026-09-20-chat/conversation.md',
+    '06 AI Team/AI SESSIONS/2026-09-20-chat/conversation.md',
+    '06 AI Team/./AI Sessions/2026-09-20-chat/conversation.md',
+  ]) {
+    const r = await api.get(`/api/team/file?path=${encodeURIComponent(p)}`);
+    const body = await r.text();
+    assert.equal(r.status, 403, p);
+    assert.equal(body.includes('PRIVATE TRANSCRIPT'), false, p);
+  }
+  const sop = await api.get(`/api/team/file?path=${encodeURIComponent('06 AI Team/AI Team Knowledge/SOPs/SOP-1001-example-procedure.md')}`);
+  assert.equal(sop.status, 200, 'a team file outside AI Sessions still opens');
+});
+
+test('M2: a symlink into a denied area is judged by the real file', async () => {
+  const notes = path.join(roots.content, '04 Inner World', 'Notes');
+  fs.writeFileSync(path.join(roots.content, '07 Databases', 'secret.md'), 'DB_MARKER\n');
+  fs.symlinkSync('../../07 Databases/secret.md', path.join(notes, 'linked.md'));
+  const transcriptDir = path.join(roots.content, '06 AI Team', 'AI Sessions', 'chat');
+  fs.mkdirSync(transcriptDir, { recursive: true });
+  fs.writeFileSync(path.join(transcriptDir, 'conversation.md'), 'MODE_A_TRANSCRIPT\n');
+  fs.symlinkSync('../../06 AI Team/AI Sessions/chat/conversation.md', path.join(notes, 'chat.md'));
+  fs.writeFileSync(path.join(roots.content, '04 Inner World', '.env'), 'EXAMPLE_ONLY=planted\n');
+  fs.symlinkSync('../.env', path.join(notes, 'env.md'));
+  try {
+    for (const p of ['04 Inner World/Notes/linked.md', '04 Inner World/Notes/chat.md', '04 Inner World/Notes/env.md']) {
+      const r = await api.get(`/api/file?path=${encodeURIComponent(p)}`);
+      const body = await r.text();
+      assert.equal(r.status, 403, p);
+      assert.equal(/DB_MARKER|MODE_A_TRANSCRIPT|EXAMPLE_ONLY/.test(body), false, p);
+    }
+    const direct = await api.get(`/api/file?path=${encodeURIComponent('04 Inner World/Notes/Soil basics.md')}`);
+    assert.equal(direct.status, 200, 'an ordinary note still opens');
+  } finally {
+    for (const f of ['linked.md', 'chat.md', 'env.md']) fs.rmSync(path.join(notes, f), { force: true });
+  }
+});
+
+test('L2: cross-site subresource requests are refused, same-origin ones marked', async () => {
+  const cross = await api.get('/api/asset?path=garden.png', { headers: { 'Sec-Fetch-Site': 'cross-site' } });
+  assert.equal(cross.status, 403);
+  const sameSite = await api.get('/api/asset?path=garden.png', { headers: { 'Sec-Fetch-Site': 'same-site' } });
+  assert.equal(sameSite.status, 403);
+  const same = await api.get('/api/asset?path=garden.png', { headers: { 'Sec-Fetch-Site': 'same-origin' } });
+  assert.equal(same.status, 200);
+  assert.equal(same.headers.get('cross-origin-resource-policy'), 'same-origin');
+  const typed = await api.get('/api/status', { headers: { 'Sec-Fetch-Site': 'none' } });
+  assert.equal(typed.status, 200, 'a URL typed in the address bar still works');
+});

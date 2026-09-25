@@ -7,7 +7,7 @@ import express from 'express';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { containedPath } from './jail.js';
+import { containedPath, servedPath } from './jail.js';
 import { SCHEMA, SCHEMA_ID, conceptPath } from './schema.js';
 import { readSettings, writeSettings } from './settings.js';
 import {
@@ -38,9 +38,12 @@ const INLINE_MIME = {
 };
 const EMBED_CSP = "default-src 'none'; img-src 'self'; media-src 'self'; object-src 'self'; style-src 'unsafe-inline'";
 
-// Content rooms a file preview may read. 05 Assets is served as images only
-// (via /api/asset), 07 Databases and the dot folders never.
+// Content rooms a file preview may read (05 Assets for the Documents preview:
+// PDFs, images, text, audio). 06 AI Team, 07 Databases and dot folders never,
+// judged on the real file after symlinks (D5 M2).
 const PREVIEW_ROOMS = ['00 Daily Scratchpad', '01 Inbox', '02 Planner', '03 WiP', '04 Inner World', '05 Assets'];
+const CONTENT_DENY = ['06 AI Team/', '07 Databases/'];
+const TEAM_DENY = ['06 AI Team/AI Sessions/'];
 
 const APP_CSP = [
   "default-src 'self'",
@@ -81,6 +84,16 @@ export function createApp(store, { port = 4317 } = {}) {
     res.set('Cache-Control', 'no-store');
     res.set('X-Content-Type-Options', 'nosniff');
     res.set('Referrer-Policy', 'no-referrer');
+    return next();
+  });
+
+  // D5 L2: no other site may load Cockpit responses as subresources (an <img>
+  // or <iframe> on a foreign page would reveal which files exist). Browsers
+  // send Sec-Fetch-Site; `none` is a URL typed or bookmarked by the user.
+  app.use((req, res, next) => {
+    const site = req.get('Sec-Fetch-Site');
+    if (site && site !== 'same-origin' && site !== 'none') return res.status(403).json({ error: 'forbidden' });
+    res.set('Cross-Origin-Resource-Policy', 'same-origin');
     return next();
   });
 
@@ -557,12 +570,7 @@ export function createApp(store, { port = 4317 } = {}) {
   app.get('/api/file', (req, res) => {
     if (!needContent(res)) return;
     const rel = String(req.query.path ?? '');
-    const room = rel.split('/')[0];
-    if (!PREVIEW_ROOMS.includes(room)) {
-      res.status(403).json({ error: 'forbidden' });
-      return;
-    }
-    const abs = containedPath(S.content.root, rel);
+    const abs = servedPath(S.content.root, rel, { rooms: PREVIEW_ROOMS, denyPrefixes: CONTENT_DENY });
     if (!abs) {
       res.status(403).json({ error: 'forbidden' });
       return;
@@ -604,16 +612,17 @@ export function createApp(store, { port = 4317 } = {}) {
       return;
     }
     let abs = null;
+    const assetRooms = { rooms: [conceptPath('assets')], denyPrefixes: CONTENT_DENY };
     if (which === 'content' && S.content && rel.startsWith(`${conceptPath('assets')}/`)) {
-      abs = containedPath(S.content.root, rel);
+      abs = servedPath(S.content.root, rel, assetRooms);
     } else if (which === 'content' && S.content) {
       // An embed name ("garden.png", or a partial path), resolved by file name
       // the way the vault does; only files under 05 Assets are ever found.
       const found = S.content.assetsByName.get(path.basename(rel).toLowerCase());
-      if (found) abs = containedPath(S.content.root, found);
+      if (found) abs = servedPath(S.content.root, found, assetRooms);
     } else if (which === 'agents' && S.agents) {
       const allowed = S.agents.agents.some((a) => a.avatar === rel);
-      if (allowed) abs = containedPath(S.agents.root, rel);
+      if (allowed) abs = servedPath(S.agents.root, rel, { rooms: ['06 AI Team'], denyPrefixes: TEAM_DENY });
     }
     if (!abs) {
       res.status(403).json({ error: 'forbidden' });
@@ -740,12 +749,9 @@ export function createApp(store, { port = 4317 } = {}) {
   app.get('/api/team/file', (req, res) => {
     if (!needAgents(res)) return;
     const rel = String(req.query.path ?? '');
-    if (!rel.startsWith('06 AI Team/') || rel.startsWith('06 AI Team/AI Sessions/') || !rel.toLowerCase().endsWith('.md')) {
-      res.status(403).json({ error: 'forbidden' });
-      return;
-    }
-    const abs = containedPath(S.agents.root, rel);
-    if (!abs) {
+    // q7c: transcripts are refused on the REAL file, whatever the spelling (D5 M1).
+    const abs = servedPath(S.agents.root, rel, { rooms: ['06 AI Team'], denyPrefixes: TEAM_DENY });
+    if (!abs || !abs.toLowerCase().endsWith('.md')) {
       res.status(403).json({ error: 'forbidden' });
       return;
     }

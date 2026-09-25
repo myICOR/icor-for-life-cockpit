@@ -61,3 +61,40 @@ export function containedPath(root, rel, { allowDot = [], mustExist = true } = {
 export function toRel(root, abs) {
   return path.relative(root, abs).split(path.sep).join('/');
 }
+
+function realpathNative(p) {
+  try {
+    return fs.realpathSync.native(p);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The path a route may serve: every rule runs on the REAL file, never on the
+ * typed string (D5 M1, M2). Empty segments are refused outright ("a//b"), the
+ * file is contained and resolved through symlinks, and then the room, dot and
+ * deny rules are checked on its on-disk, case-true path relative to the root,
+ * case-insensitively (APFS and NTFS fold case). Returns the real absolute path
+ * or null.
+ */
+export function servedPath(root, rel, { rooms = null, denyPrefixes = [], allowDot = [] } = {}) {
+  if (typeof rel !== 'string' || rel.split(/[\\/]/).some((s) => s === '' || s === '.')) return null;
+  const contained = containedPath(root, rel, { allowDot });
+  if (!contained) return null;
+  const realRoot = realpathNative(root);
+  const real = realpathNative(contained);
+  if (!realRoot || !real || !isInside(realRoot, real) || real === realRoot) return null;
+  const realRel = toRel(realRoot, real);
+  const segs = realRel.split('/');
+  if (segs.some((s) => s.startsWith('.')) && !allowDot.includes(realRel)) return null;
+  if (isDeniedName(segs[segs.length - 1])) return null;
+  const low = realRel.toLowerCase();
+  if (rooms && !rooms.some((r) => segs[0].toLowerCase() === r.toLowerCase())) return null;
+  const denied = denyPrefixes.some((p) => {
+    const lp = p.toLowerCase();
+    return low === lp.replace(/\/$/, '') || low.startsWith(lp);
+  });
+  if (denied) return null;
+  return real;
+}
