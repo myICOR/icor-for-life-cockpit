@@ -1,0 +1,32 @@
+ICOR for Life - Cockpit
+Copyright (c) 2026 Paperless Movement, S.L.
+
+Licensed under the MIT License (see LICENSE).
+
+================================================================================
+THIRD-PARTY NOTICES
+================================================================================
+
+This product depends on third-party open-source software. Each component keeps
+its own licence; the full texts ship inside each package under node_modules.
+
+Server runtime:
+  express (MIT), yaml (ISC), and their transitive dependencies (MIT, ISC,
+  BSD-3-Clause).
+
+Web application (bundled into web/dist):
+  react, react-dom (MIT); @xyflow/react (MIT); d3-force (ISC);
+  lucide-react (ISC); react-markdown, remark-gfm and the unified / micromark
+  family (MIT).
+
+Fonts (self-hosted, bundled as woff2):
+  Bricolage Grotesque, Instrument Sans, Spline Sans Mono and Caveat, via the
+  @fontsource-variable packages, under the SIL Open Font License 1.1 (OFL-1.1).
+
+Build tools (not shipped in the bundle):
+  vite (MIT), @vitejs/plugin-react (MIT), tailwindcss (MIT), postcss (MIT),
+  autoprefixer (MIT), typescript (Apache-2.0).
+
+Schema:
+  schema/icor-concepts-1.json is a byte-identical copy of the icor-concepts/1
+  schema from myPKA 6.0.1 (github.com/myICOR/myPKA).

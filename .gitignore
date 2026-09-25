@@ -1,0 +1,21 @@
+# ICOR for Life - Cockpit
+
+# Dependencies and build output (rebuilt by npm run install:all / npm run build)
+node_modules/
+**/node_modules/
+web/dist/
+**/*.tsbuildinfo
+
+# The Cockpit's own settings (your two folder paths). Local to this machine.
+cockpit.settings.json
+cockpit.settings.json.tmp-*
+
+# Secrets never belong in this repo
+.env
+.env.*
+
+# Transients
+*.log
+.DS_Store
+**/.DS_Store
+dist-release/

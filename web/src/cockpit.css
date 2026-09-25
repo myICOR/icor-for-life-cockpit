@@ -1,0 +1,1584 @@
+/* ===========================================================================
+   cockpit.css - the myPKA Cockpit shell + universal viewer + journal +
+   serendipity styles. GL-003 v5 "INKLINE" (dark ink room canonical). Tokens
+   only - every colour is a var() from index.css. "A calm teacher's blackboard
+   at dusk." The room is ink, the type is paper, the pen is the marker: ONE
+   loud marker moment per view (§2.3). Elevation is hairline, not shadow
+   (§5.3); separation adds noise, so content sits flat on the room (§5.1);
+   glass chrome speaks the room's own ground (§2.2 scrim doctrine).
+   =========================================================================== */
+
+:root {
+  --sidebar-w: 17rem;
+  --content-max: 980px;
+}
+
+/* ---- Shell layout --------------------------------------------------------- */
+.cockpit-shell {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.cockpit-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* On desktop the sidebar is in flow; the main area simply sits beside it. */
+@media (min-width: 768px) {
+  .cockpit-shell.sidebar-closed .cockpit-sidebar {
+    margin-left: calc(var(--sidebar-w) * -1);
+  }
+}
+
+.cockpit-content {
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+@media (min-width: 768px) {
+  .cockpit-content { padding: 32px 32px 64px; }
+}
+
+/* ---- Topbar (mobile-first; the menu button is desktop-visible too) -------- */
+.cockpit-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--topbar-bg);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.topbar-menu {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  width: 36px;
+  border-radius: 10px;
+  color: var(--fg-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+.topbar-menu:hover { background: var(--surface-2); color: var(--fg); }
+@media (min-width: 768px) {
+  /* On desktop the sidebar is always reachable; the topbar (shown only while the
+     rail is collapsed) stays a compact, chromeless reopen affordance. */
+  .cockpit-topbar { background: transparent; backdrop-filter: none; border-bottom: none; }
+}
+
+/* ---- Sidebar -------------------------------------------------------------- */
+.cockpit-sidebar {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  flex: 0 0 var(--sidebar-w);
+  width: var(--sidebar-w);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  /* INKLINE rail (§6.1): the deepest ink in the room, opaque, with the §5.5
+     whisper of marker light at its top and a right hairline. */
+  background:
+    linear-gradient(180deg, var(--rail-wash) 0%, transparent 140px),
+    var(--surface-deep);
+  border-right: 1px solid var(--border-subtle);
+  transition: margin-left 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 40;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 16px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.sidebar-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  width: 36px;
+  border-radius: 10px;
+  background: var(--accent-marker-soft);
+  /* The INKLINE mark is a STROKE, so it needs the full marker colour to read at
+     24px. --accent-marker-text is tuned for text sitting ON the marker fill and
+     renders the loop washed out here. */
+  color: var(--accent-marker);
+  border: 1px solid var(--accent-marker-border);
+  flex-shrink: 0;
+}
+.sidebar-brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+/* The rail is 17rem. After the 36px mark, two 10px gaps and the 32px collapse
+   button, the text column gets roughly 152px - and "Personal Knowledge
+   Assistance" needs about 174px at 0.75rem, which is why it wrapped onto a
+   third line and pushed the header out of shape. Both lines are now single-line
+   with an ellipsis fallback, and the subtitle sits at a size that actually fits. */
+.sidebar-brand-title {
+  font-size: 0.9375rem;
+  font-weight: 520;
+  color: var(--fg);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sidebar-brand-sub {
+  font-size: 0.6875rem;
+  color: var(--fg-subtle);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Collapse affordance inside the sidebar header (moved here from the top content
+   bar). Pushed to the trailing edge by the brand-text flex:1. Quiet at rest,
+   brass-tinted on hover/focus - the established control idiom. */
+.sidebar-collapse {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  width: 32px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  color: var(--fg-subtle);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+.sidebar-collapse:hover { background: var(--surface-2); color: var(--fg); }
+.sidebar-collapse:focus-visible { outline: 2px solid var(--accent-marker); outline-offset: 2px; box-shadow: none; }
+
+/* Global-search trigger (item-8) - looks like a field, behaves as a button that
+   opens the ⌘K command palette. Sits between the header and the scrolling nav. */
+.sidebar-search { padding: 8px 8px 0; flex-shrink: 0; }
+.sidebar-search-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--fg-subtle);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+.sidebar-search-trigger:hover,
+.sidebar-search-trigger:focus-visible {
+  background: var(--rail-hover-bg);
+  border-color: var(--border-emphasis);
+  color: var(--fg-muted);
+}
+.sidebar-search-icon { flex-shrink: 0; }
+.sidebar-search-placeholder { flex: 1 1 auto; font-size: 0.8125rem; }
+.sidebar-search-kbd {
+  flex-shrink: 0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--surface-bg);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-subtle);
+  line-height: 1;
+}
+
+.sidebar-content {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.sidebar-group { display: flex; flex-direction: column; gap: 4px; }
+.sidebar-group-label {
+  /* §3.4 mono kicker voice: tiny uppercase Spline Mono, paper_faint at FULL
+     alpha (the §2.8 quiet-voice floor). */
+  padding: 4px 10px;
+  font-family: 'Spline Sans Mono Variable', 'Spline Sans Mono', ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--fg-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.menu { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.menu-item { position: relative; }
+.menu-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: var(--fg-muted);
+  text-decoration: none;
+  font-size: 0.9375rem;
+  transition: background-color 150ms ease, color 150ms ease;
+  cursor: pointer;
+}
+.menu-button:hover { background: var(--rail-hover-bg); color: var(--fg); }
+/* Active nav row - §6.1 rail grammar: the pressed WELL (an opaque composite
+   over the rail ground + inset) with the MARKER glyph (ruling A123: a paper
+   glyph on the active stop is a FAIL). One treatment; never well + border +
+   glow stacked. */
+.menu-button[data-active='true'] {
+  background: var(--rail-well-bg);
+  color: var(--fg);
+  font-weight: 460;
+  box-shadow: var(--rail-well-inset);
+}
+.menu-button[data-active='true'] .menu-icon { color: var(--accent-marker); }
+
+/* ---- "My AI Team" fly-out (v3.1.0) ----------------------------------------
+   The trigger is a <button> styled as a menu row; it carries the disclosure
+   caret. The fly-out panel anchors to the row and pops OUT to the right (it sits
+   in the bottom rail, so it's bottom-aligned and opens UPWARD to stay on-screen).
+   Brass accents + GL-003 tokens only; verified light + dark. */
+.team-flyout-trigger {
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+}
+.team-flyout-trigger:focus-visible {
+  outline: 2px solid var(--accent-marker);
+  outline-offset: 2px;
+}
+.team-flyout-caret {
+  flex-shrink: 0;
+  color: var(--fg-subtle);
+  transition: transform 150ms ease;
+}
+.team-flyout-caret.is-open { transform: rotate(90deg); color: var(--accent-marker-text); }
+
+.team-flyout-wrap { position: relative; }
+
+.team-flyout-menu {
+  position: absolute;
+  left: calc(100% + 8px);
+  bottom: 0;
+  z-index: 60;
+  min-width: 13rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  border-radius: 16px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 36px -16px var(--scrim);
+  /* A pure opacity fade - NO transform, so the panel never "flies in" from the
+     top-left (the banned animate-in failure mode on floating elements). */
+  animation: team-flyout-fade-in 140ms ease-out;
+}
+@keyframes team-flyout-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.team-flyout-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: var(--fg-muted);
+  text-decoration: none;
+  font-size: 0.9375rem;
+  white-space: nowrap;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+.team-flyout-item:hover { background: var(--surface-2); color: var(--fg); }
+.team-flyout-item:focus-visible { outline: 2px solid var(--accent-marker); outline-offset: 2px; }
+.team-flyout-item[data-active='true'] {
+  background: var(--accent-marker-soft);
+  color: var(--fg);
+}
+.team-flyout-item[data-active='true'] .team-flyout-item-icon { color: var(--accent-marker); }
+.team-flyout-item-icon { flex-shrink: 0; color: var(--fg-subtle); }
+.team-flyout-item-label { flex: 1 1 auto; min-width: 0; }
+
+/* On mobile the off-canvas drawer is narrow; flying out to the right would land
+   off-screen. Drop the menu to an in-flow expansion ABOVE the trigger instead. */
+@media (max-width: 767px) {
+  .team-flyout-menu {
+    position: static;
+    left: auto;
+    bottom: auto;
+    min-width: 0;
+    margin: 2px 0 4px;
+    box-shadow: none;
+  }
+}
+.menu-icon { flex-shrink: 0; color: var(--fg-subtle); }
+.menu-label { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.menu-badge {
+  flex-shrink: 0;
+  min-width: 1.4rem;
+  text-align: center;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-subtle);
+  background: var(--surface-2);
+}
+.menu-button[data-active='true'] .menu-badge { color: var(--accent-marker-text); background: transparent; }
+
+/* Bottom-pinned nav region (the "Team" item). Sits between the scrollable
+   .sidebar-content (flex:1) and the footer, so it's anchored to the bottom of the
+   rail no matter how tall the nav grows. Mirrors .sidebar-content's horizontal
+   padding so the NavRow aligns with the rest of the menu. */
+.sidebar-bottom {
+  padding: 8px;
+  border-top: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--border-subtle); }
+.sidebar-footer-note { margin: 0; font-size: 0.75rem; line-height: 1.5; color: var(--fg-subtle); }
+
+/* Mobile: the sidebar becomes an off-canvas drawer with a scrim. */
+.sidebar-scrim { display: none; }
+@media (max-width: 767px) {
+  .cockpit-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    margin-left: calc(var(--sidebar-w) * -1 - 1px);
+    box-shadow: 8px 0 40px var(--shadow-strong-color);
+  }
+  .cockpit-sidebar.is-open { margin-left: 0; }
+  .sidebar-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: var(--scrim);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+    z-index: 39;
+  }
+  .sidebar-scrim.is-open { opacity: 1; pointer-events: auto; }
+}
+/* The minimalist index-page header (PageHeader.tsx): title + quiet subtitle
+   top-LEFT, primary action top-RIGHT, generous breathing room. One standard for
+   every index/list page (X.com header read). The legacy wrapper classes
+   (.type-list-header, .dashboard-header, .documents-header, .ft-view-header,
+   .workbench-list-header) now alias this layout so any not-yet-migrated surface
+   stays visually identical. */
+.page-header,
+.type-list-header,
+.workbench-list-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+.page-header-heading { min-width: 0; flex: 1 1 auto; }
+/* The primary action sits top-right; it never shrinks below its content. It is
+   itself a flex box so an action that EXPANDS in place (the journal / fleeting
+   composer opening into a wide panel) can grow to fill the row when it wraps to
+   its own line. The collapsed trigger stays compact (the child button sizes to
+   content); an opened composer's own `flex: 1 1 <basis>` then takes the width. */
+.page-header-action {
+  flex: 0 1 auto;
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+/* Shared primary-action button for PageHeader (the "+ New …" idiom). A calm
+   bordered pill at rest that fills brass on hover/focus - the same vocabulary as
+   the journal composer trigger (.jt-new-btn) and the workbench "New note". */
+.page-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--fg);
+  font-size: 0.875rem;
+  font-weight: 460;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+.page-action-btn:hover { background: var(--accent-marker); border-color: var(--accent-marker); color: var(--text-on-marker); }
+.page-action-btn:focus-visible { outline: 2px solid var(--accent-marker); outline-offset: 2px; box-shadow: none; }
+.page-action-btn:disabled { opacity: 0.55; cursor: default; }
+
+.page-title {
+  /* GL-003 §3.1/§3.2: the display voice - Bricolage 640 at -0.015em; page
+     titles ride the canonical clamp at 1.04 leading. */
+  font-family: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', system-ui, sans-serif;
+  font-size: clamp(32px, 3.2vw, 46px);
+  line-height: 1.04;
+  font-weight: 640;
+  letter-spacing: -0.015em;
+  color: var(--fg);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.title-icon { color: var(--accent-marker-text); flex-shrink: 0; }
+.page-sub { margin: 4px 0 0; font-size: 0.8125rem; color: var(--fg-muted); }
+
+/* Shared avatar - circular, with an initials fallback. */
+.roster-avatar {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  width: 48px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--accent-marker-soft);
+  border: 1px solid var(--border-subtle);
+}
+.roster-avatar-img { height: 100%; width: 100%; object-fit: cover; display: block; }
+.roster-avatar-initials {
+  font-size: 1rem;
+  font-weight: 520;
+  color: var(--accent-marker-text);
+  letter-spacing: 0.01em;
+}
+.roster-avatar--lead { height: 72px; width: 72px; }
+.roster-avatar--lead .roster-avatar-initials { font-size: 1.5rem; }
+
+/* Filter bar - a search box + facet dropdowns. Wraps on narrow widths. */
+.filter-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 220px;
+  min-width: 200px;
+}
+.filter-search-icon {
+  position: absolute;
+  left: 10px;
+  color: var(--fg-subtle);
+  pointer-events: none;
+}
+.filter-search-input {
+  width: 100%;
+  padding: 8px 12px 8px 32px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--fg);
+  font-size: 0.875rem;
+  transition: border-color 150ms ease;
+}
+.filter-search-input::placeholder { color: var(--fg-subtle); }
+.filter-search-input:focus-visible {
+  outline: none;
+  border-color: var(--accent-marker);
+}
+
+/* Empty state - first-class, friendly. */
+.library-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 48px 24px;
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+  background: var(--surface-1);
+}
+.library-empty-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  width: 56px;
+  border-radius: 999px;
+  background: var(--accent-marker-soft);
+  color: var(--accent-marker-text);
+  margin-bottom: 4px;
+}
+.library-empty-title { margin: 0; font-size: 1rem; font-weight: 520; color: var(--fg); }
+.library-empty-sub { margin: 0; max-width: 42ch; font-size: 0.875rem; line-height: 1.55; color: var(--fg-muted); }
+
+@media (max-width: 767px) {
+  .filter-search { flex-basis: 100%; }
+}
+
+/* ---- Type list / row list ------------------------------------------------- */
+.row-title { font-size: 0.9375rem; color: var(--fg); }
+.row-sub { font-size: 0.75rem; color: var(--fg-muted); }
+.row-date { flex-shrink: 0; font-size: 0.75rem; color: var(--fg-subtle); font-variant-numeric: tabular-nums; }
+.row-chevron { flex-shrink: 0; color: var(--fg-subtle); }
+/* A quiet filter bar above the list (X.com density). Reuses .filter-search-* . */
+.type-list-toolbar { margin: 0 0 12px; }
+.type-list-toolbar .filter-search { flex: 1 1 auto; min-width: 0; max-width: 420px; }
+
+/* item-5 - the entity list is a sortable DATA TABLE. Desktop = real <table>;
+   mobile (≤640px) = stacked card-per-row (label:value) driven by the same sort
+   state via the .type-table-sortbar control bar. All colour/size from tokens. */
+.type-table-wrap { width: 100%; }
+.type-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+/* Header row - each cell wraps a click-to-sort button (the <th> owns aria-sort).
+   The whole header rests on the board ground with a hairline rule beneath. */
+.type-table thead th {
+  text-align: left;
+  font-weight: 460;
+  color: var(--fg-muted);
+  border-bottom: 1px solid var(--border);
+  padding: 0;
+}   /* non-sortable label cell */
+.sort-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  min-height: 32px;
+  padding: 8px 10px;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--fg-muted);
+  font: inherit;
+  text-align: left;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+.sort-header:hover { color: var(--fg); background: var(--surface-2); }
+.sort-header.is-active { color: var(--accent-marker-text); }
+.sort-header:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+.sort-glyph { flex-shrink: 0; }
+.sort-glyph.is-idle { opacity: 0.45; }
+
+/* Body rows - clickable, keyboard-focusable (role=link). Brass on hover/focus,
+   matching the prior .row-button affordance. */
+.type-row {
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+.type-row:hover { background: var(--surface-2); }
+.type-row:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+  border-radius: 10px;
+}
+.type-table tbody td {
+  padding: 11px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+  color: var(--fg-muted);
+}
+.type-row:last-child td { border-bottom: 0; }
+
+.td-name { width: 40%; }
+.td-name-main { display: inline-flex; flex-direction: column; gap: 2px; min-width: 0; }
+.td-name .row-title { font-size: 0.9375rem; color: var(--fg); }
+.td-name .row-sub { font-size: 0.75rem; color: var(--fg-muted); }
+.td-name .row-date {
+  margin-left: 10px; font-size: 0.75rem; color: var(--fg-subtle);
+  font-variant-numeric: tabular-nums;
+}
+.td-name .row-chevron { float: right; color: var(--fg-subtle); margin-top: 2px; }
+.td-col-value { font-variant-numeric: tabular-nums; }
+.td-empty { color: var(--fg-subtle); }
+
+/* ---- Mobile sort-control bar (≤640px only) -------------------------------- */
+.type-table-sortbar { display: none; }
+.type-table-sortbar-label { font-size: 0.75rem; color: var(--fg-subtle); align-self: center; }
+.sort-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  color: var(--fg-muted);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+.sort-pill.is-active { background: var(--accent-marker-soft); border-color: var(--accent-marker); color: var(--accent-marker-text); }
+.sort-pill:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+
+/* The 640px breakpoint: collapse the table into stacked cards, reveal the
+   sort-control bar. Each row becomes a self-contained tappable card with a
+   label:value layout; ≥44px effective touch height via padding. */
+@media (max-width: 640px) {
+  .type-table-sortbar {
+    display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; align-items: center;
+  }
+  .type-table { border-collapse: separate; border-spacing: 0; }
+  .type-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .type-table, .type-table tbody, .type-row, .type-table tbody td { display: block; width: 100%; }
+  .type-row {
+    margin-bottom: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-1);
+  }
+  .type-row:hover { background: var(--surface-2); }
+  .type-table tbody td { border-bottom: 0; padding: 4px 0; }
+  .td-name { width: auto; }
+  .td-name .row-chevron { display: none; }
+  .td-name .row-date { display: block; margin: 4px 0 0; }
+  /* Detail + social cells become label:value rows. The label comes from
+     data-label (no duplicated DOM); empty cells are suppressed entirely. */
+  .td-col { display: flex; gap: 8px; align-items: baseline; padding: 5px 0 !important; }
+  .td-col::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    min-width: 8.5ch;
+    color: var(--fg-subtle);
+    font-size: 0.75rem;
+  }
+  .td-col:has(.td-empty) { display: none; }
+}
+
+.type-list-empty {
+  padding: 28px 14px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  background: var(--surface-1);
+  color: var(--fg-subtle);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+/* ---- Mood / energy chips -------------------------------------------------- */
+.chip-mood, .chip-energy {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 999px; font-size: 0.75rem;
+  background: var(--surface-2); color: var(--fg-muted); white-space: nowrap;
+}
+.chip-mood.tone-low { background: var(--status-warning-soft); color: var(--fg-muted); } /* A162: amber tint stays, text goes quiet */
+.chip-mood.tone-high { background: var(--status-success-soft); color: var(--status-success); }
+.chip-mood.tone-mid, .chip-mood.tone-word { background: var(--surface-2); color: var(--fg-muted); }
+
+/* ---- Note viewer ---------------------------------------------------------- */
+.note-view { display: flex; flex-direction: column; }
+.back-button {
+  display: inline-flex; align-items: center; gap: 4px; align-self: flex-start;
+  padding: 4px 8px 4px 4px; margin-bottom: 12px; border-radius: 10px;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--fg-muted); font-size: 0.8125rem; transition: color 150ms ease;
+}
+.back-button:hover { color: var(--accent-marker-text); }
+
+.note-header { margin-bottom: 20px; }
+.note-type-pill {
+  display: inline-block; padding: 2px 10px; border-radius: 999px;
+  background: var(--accent-marker-soft); color: var(--accent-marker-text);
+  font-size: 0.75rem; font-weight: 460; margin-bottom: 8px;
+}
+.note-title {
+  /* Display voice (§3.1). */
+  font-family: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', system-ui, sans-serif;
+  font-size: clamp(28px, 2.6vw, 38px); line-height: 1.1; font-weight: 640; letter-spacing: -0.015em;
+  color: var(--fg); margin: 0;
+}
+.note-journal-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.meta-pair { display: inline-flex; align-items: center; gap: 4px; font-size: 0.8125rem; color: var(--fg-muted); }
+.meta-cat { font-size: 0.75rem; color: var(--fg-subtle); }
+.note-also { margin: 12px 0 0; font-size: 0.8125rem; color: var(--fg-muted); }
+
+.note-grid { display: grid; grid-template-columns: 1fr; gap: 28px; }
+@media (min-width: 900px) {
+  .note-grid { grid-template-columns: minmax(0, 1fr) 17rem; }
+}
+.note-body-col { min-width: 0; }
+.note-empty { color: var(--fg-subtle); font-size: 0.9375rem; font-style: italic; }
+.note-audio-note { margin-top: 16px; font-size: 0.75rem; color: var(--fg-subtle); }
+
+/* ---- Document preview (v3 #4) - native iframe/img embed, no renderer dep ----
+   IMPORTANT: every selector here is scoped under `.note-body-col` on purpose.
+   `views/documents.css` ALSO defines `.doc-preview`, `.doc-preview-head` and
+   `.doc-preview-frame` for the DocumentsView split-list sidebar, where the
+   preview is INTENTIONALLY `position: sticky; height: min(78vh,920px)`. Both
+   stylesheets land in one global bundle (Vite concatenates component-imported
+   CSS - no scoping), so a bare `.doc-preview` here collides with documents.css.
+   When documents.css wins the cascade, NoteView's in-flow preview inherits
+   `position: sticky` + a huge fixed height and pins to the top, occluding the
+   Notes + MiniGraph blocks below it as the page scrolls. Scoping under the
+   NoteView-only `.note-body-col` ancestor (specificity 0-2-0 vs documents.css's
+   0-1-0) makes these rules win for NoteView regardless of bundle order, while
+   documents.css keeps its sticky sidebar. Keep the `.note-body-col` prefix. */
+.note-body-col .doc-preview {
+  position: static; margin: 0 0 24px; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface-1); overflow: hidden;
+}
+.note-body-col .doc-preview-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; border-bottom: 1px solid var(--border-subtle);
+  font-size: 0.8125rem; color: var(--fg-muted);
+}
+.note-body-col .doc-preview-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.note-body-col .doc-preview-open {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.75rem; color: var(--accent-marker-text); text-decoration: none;
+  padding: 3px 8px; border-radius: 10px;
+}
+.note-body-col .doc-preview-open:hover { background: var(--accent-marker-soft); }
+.note-body-col .doc-preview-frame {
+  width: 100%; height: min(72vh, 760px); border: 0; background: var(--surface-0, var(--surface-1));
+  display: block;
+}
+.note-body-col .doc-preview-image { width: 100%; height: auto; max-height: min(72vh, 760px); object-fit: contain; display: block; background: var(--surface-1); }
+.note-body-col .doc-preview-unavailable { background: var(--surface-1); }
+.note-body-col .doc-preview-note { margin: 0; padding: 12px 14px 4px; font-size: 0.8125rem; color: var(--fg-muted); }
+.note-body-col .doc-preview-path { padding: 0 14px 14px; font-size: 0.72rem; color: var(--fg-subtle); word-break: break-all; }
+
+/* ---- Rendered markdown body (note-prose) ---------------------------------- */
+.note-prose { color: var(--fg-muted); font-size: 0.9375rem; line-height: 1.65; max-width: 68ch; }
+.note-prose h1, .note-prose h2, .note-prose h3, .note-prose h4 {
+  color: var(--fg); font-weight: 520; line-height: 1.3; margin: 1.6em 0 0.5em;
+}
+.note-prose h1 { font-size: 1.5rem; }
+.note-prose h2 { font-size: 1.25rem; }
+.note-prose h3 { font-size: 1.125rem; }
+.note-prose h4 { font-size: 1rem; }
+.note-prose > :first-child { margin-top: 0; }
+.note-prose p { margin: 0 0 0.9em; }
+.note-prose ul, .note-prose ol { margin: 0 0 0.9em; padding-left: 1.3em; }
+.note-prose li { margin: 0 0 0.35em; line-height: 1.6; }
+.note-prose strong { color: var(--fg); font-weight: 520; }
+.note-prose em { font-style: italic; }
+.note-prose code {
+  font-family: 'Spline Sans Mono Variable', 'Spline Sans Mono', ui-monospace, monospace; font-size: 0.85em;
+  background: var(--surface-2); padding: 1px 5px; border-radius: 4px; color: var(--fg);
+}
+.note-prose pre {
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px 14px; overflow-x: auto; margin: 0 0 1em;
+}
+.note-prose pre code { background: transparent; padding: 0; }
+.note-prose blockquote {
+  border-left: 3px solid var(--accent-marker); padding: 2px 0 2px 14px; margin: 0 0 1em;
+  color: var(--fg); font-style: italic;
+}
+/* Graphite §4.6 divider - a thin gradient hairline that fades to transparent at
+   both ends, instead of a hard rule edge-to-edge. */
+.note-prose hr {
+  border: none;
+  height: 1px;
+  background: var(--grad-divider);
+  margin: 1.6em 0;
+}
+.note-prose a.ext-link { color: var(--accent-marker-text); text-decoration: none; }
+.note-prose a.ext-link:hover { text-decoration: underline; }
+.note-prose table {
+  border-collapse: collapse; width: 100%; margin: 0 0 1em; font-size: 0.875rem;
+}
+.note-prose th, .note-prose td {
+  border-bottom: 1px solid var(--border-subtle); padding: 7px 10px; text-align: left;
+}
+.note-prose th { color: var(--fg-muted); font-weight: 460; }
+.note-prose td { color: var(--fg-muted); }
+
+/* Clickable wikilink - brass text, subtle underline-on-hover (a real button). */
+.wikilink {
+  display: inline; padding: 0; margin: 0; border: none; background: transparent;
+  color: var(--accent-marker-text); font: inherit; cursor: pointer;
+  text-decoration: none; border-bottom: 1px solid transparent;
+  transition: border-color 120ms ease;
+}
+.wikilink:hover { border-bottom-color: var(--accent-marker); }
+.wikilink:focus-visible { outline: none; border-radius: 4px; box-shadow: 0 0 0 2px var(--accent-marker-soft); }
+
+/* Unresolvable wikilink - a [[target]] with no cockpit view (a Team-Knowledge
+   SOP/WS/GL reference). Non-interactive: muted text, no brass, a dotted underline
+   cue (distinct from a real link's solid hover underline), default cursor + a
+   tooltip naming it. The honest, non-clickable degrade - never a 404 link. The
+   same posture as the degraded connection pill (team.css .team-conn-chip). */
+.wikilink--unresolved {
+  color: var(--fg-muted); cursor: default;
+  border-bottom: 1px dotted var(--border-subtle);
+}
+.wikilink--unresolved:hover { border-bottom-color: var(--border-subtle); }
+
+/* ---- Media (inline images + graceful degradation) ------------------------- */
+.media-figure { margin: 0 0 1em; }
+.media-figure img {
+  max-width: 100%; border-radius: 10px; border: 1px solid var(--border); display: block;
+}
+.media-figure figcaption, .media-missing figcaption {
+  margin-top: 5px; font-size: 0.75rem; color: var(--fg-subtle);
+}
+.media-missing {
+  display: flex; align-items: center; gap: 10px; margin: 0 0 1em;
+  padding: 12px; border: 1px dashed var(--border); border-radius: 10px; background: var(--surface-1);
+}
+.media-missing-box { color: var(--fg-subtle); flex-shrink: 0; }
+.media-missing-note { display: block; color: var(--fg-subtle); margin-top: 2px; }
+
+.note-media-strip { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+.media-thumb {
+  display: flex; flex-direction: column; gap: 4px; max-width: 220px;
+}
+.media-thumb img {
+  max-width: 220px; max-height: 160px; border-radius: 10px; border: 1px solid var(--border); display: block;
+}
+/* The thumb is a real button opening the shared ImageLightbox: bare reset so
+   the image carries the visuals; zoom-in invites the click. Focus ring comes
+   from the global :focus-visible rule (index.css). */
+.media-thumb-btn {
+  display: block; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 10px;
+}
+.media-thumb-cap { font-size: 0.7rem; color: var(--fg-subtle); }
+
+/* ---- Side panels (metadata / backlinks / outbound) ------------------------ */
+.note-side { display: flex; flex-direction: column; gap: 16px; }
+.side-panel {
+  /* Graphite §4.4 card: faint top-lit gradient surface + 1px hairline. */
+  border: 1px solid var(--border); border-radius: 10px;
+  background: var(--grad-card); padding: 14px;
+}
+.side-panel-title {
+  /* §3.4 mono kicker voice - a zone label, not a heading display moment. */
+  display: flex; align-items: center; gap: 6px; margin: 0 0 10px;
+  font-family: 'Spline Sans Mono Variable', 'Spline Sans Mono', ui-monospace, monospace;
+  font-size: 0.6875rem; font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.14em; color: var(--fg-subtle);
+}
+.side-panel-title svg { color: var(--fg-subtle); }
+.side-empty { margin: 0; font-size: 0.8125rem; color: var(--fg-subtle); }
+.side-filepath { margin: 10px 0 0; font-size: 0.7rem; color: var(--fg-subtle); word-break: break-all; }
+
+.meta-list { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.meta-row { display: flex; flex-direction: column; gap: 1px; }
+.meta-row dt { font-size: 0.7rem; color: var(--fg-subtle); text-transform: none; }
+.meta-row dd { margin: 0; font-size: 0.8125rem; color: var(--fg-muted); word-break: break-word; }
+
+.backlink-list, .outbound-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.backlink {
+  display: flex; flex-direction: column; gap: 1px; width: 100%; text-align: left;
+  padding: 6px 8px; border-radius: 10px; border: 1px solid transparent; background: transparent;
+  cursor: pointer; transition: background-color 150ms ease, border-color 150ms ease;
+}
+.backlink:hover, .backlink:focus-visible { background: var(--surface-2); border-color: var(--border); }
+.backlink.is-plain { cursor: default; }
+.backlink.is-plain:hover { background: transparent; border-color: transparent; }
+.backlink-label { font-size: 0.65rem; color: var(--fg-subtle); text-transform: uppercase; letter-spacing: 0.04em; }
+.backlink-title { font-size: 0.8125rem; color: var(--fg-muted); }
+.backlink:hover .backlink-title, .backlink:focus-visible .backlink-title { color: var(--fg); }
+.outbound-list li { font-size: 0.8125rem; padding: 2px 0; }
+.outbound-plain { color: var(--fg-subtle); }
+
+/* ---- Dashboard view chrome (moved from the old App header) ----------------- */
+.dashboard-header { display: flex; align-items: center; gap: 8px; }
+
+/* ---- Skeletons / errors --------------------------------------------------- */
+.skeleton-line, .skeleton-block {
+  background: var(--surface-1); border-radius: 10px; animation: pulse 1.5s ease-in-out infinite;
+}
+.skeleton-line { height: 28px; margin-bottom: 16px; }
+.skeleton-line.w-half { width: 50%; }
+.skeleton-block { height: 120px; margin-bottom: 12px; }
+.list-skeleton { display: flex; flex-direction: column; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+.view-error {
+  border: 1px solid var(--border); border-radius: 10px; background: var(--surface-1);
+  padding: 16px; color: var(--fg-muted); font-size: 0.875rem;
+}
+
+/* Quiet boot splash while the session probe is in flight - a faint brass pulse,
+   never a flash of the login form or the app. */
+@keyframes pin-rotate { to { transform: rotate(360deg); } }
+
+/* ---- Full-bleed content wrapper ----------------------
+   The planner is a multi-column board, not prose - it must escape the 980px
+   centered reading column and fill the width to the right of the left nav. The
+   App applies .cockpit-content--full ONLY on the planner route; every other view
+   keeps the default centered .cockpit-content reading column untouched. We keep a
+   sane horizontal padding (the same desktop value the reading column uses) so the
+   board has breathing room against the viewport edges. NO token VALUES changed. */
+.cockpit-content--full {
+  max-width: none;
+  margin: 0;
+}
+
+/* ---- Full-HEIGHT content wrapper ----
+   The team pages (roster / session-log / workstreams / sops / guidelines) keep the
+   centered reading column (max-width unchanged) BUT must fill the viewport height
+   so their inner panel scrolls instead of leaving a short floating card cropped
+   ~2/3 down the screen (the old `.team-page { height: 74vh }` symptom). We give the
+   content wrapper a definite height equal to the viewport (dvh tracks the mobile
+   URL-bar) and make it a flex column; the team view (.team-solo-view) is the single
+   flex child that fills it, and ITS inner .team-solo-scroll owns the scroll.
+
+   Height = 100dvh minus the wrapper's own top/bottom padding (its only chrome on
+   desktop, where the sidebar is in-flow beside it and there's no topbar). The
+   reading column's max-width + horizontal centering are inherited from
+   .cockpit-content unchanged - only the vertical sizing changes here. */
+.cockpit-content--team {
+  height: 100dvh;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  /* Trim the default bottom padding so the panel reaches near the viewport floor;
+     a calmer 24px gives the contained scrollbar breathing room. */
+  padding-bottom: 24px;
+}
+/* When the sidebar is collapsed the sticky topbar (44px tall: 10px pad + 36px
+   button - overlap; ~56px box) eats from the top - subtract it so the panel still
+   bottoms out at the viewport edge rather than overflowing. */
+.cockpit-shell.sidebar-closed .cockpit-content--team {
+  height: calc(100dvh - 56px);
+}
+/* The member-detail "note page" (RosterView's AgentLargeView) is the ONLY child
+   on the roster route that ISN'T a .team-solo-view: it's a long reading page that
+   must scroll naturally, not be flex-squeezed by the fixed-height team wrapper. As
+   a direct flex child here it gets flex:1 + its own scroll, so the back button +
+   header + body read normally and the page bottoms out at the viewport. */
+.cockpit-content--team > .roster-large {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* the motion spec line-grow: the brass insertion rule scales in from the left (transform-origin
+   already set on .planner-drop-line) when it mounts at the resolved slot. Motion only
+   - the design system owns the 2px/brass/rounded look + the tokens; no colour authored here. The
+   global prefers-reduced-motion collapse (index.css) snaps this to instant. */
+@keyframes planner-drop-line-grow {
+  from { transform: scaleX(0); opacity: 0; }
+  to   { transform: scaleX(1); opacity: 1; }
+}
+
+/* ---- Streaming affordances (typing dots + caret) ------------------------- */
+@keyframes chat-typing-bounce {
+  0%, 60%, 100% { opacity: 0.35; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+@keyframes chat-caret-blink { 50% { opacity: 0; } }
+/* The streaming the orchestrator avatar breathes while the turn is live so "is anything
+   happening?" is answered even during a silent 8s+ subagent run. Reuses the
+   `breath-calm` vocabulary;
+   brass-soft ring, no scale, no red. The global prefers-reduced-motion block
+   (index.css) zeroes the animation → a calm static brass ring instead. */
+@keyframes chat-avatar-breath {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 90, 45, 0.28); }
+  50%      { box-shadow: 0 0 0 4px rgba(255, 90, 45, 0); }
+}
+/* The pulse is collapsed by the global prefers-reduced-motion block (index.css). */
+@keyframes chat-rail-toggle-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.25); opacity: 0.7; }
+}
+/* The panel hosts ChatArtifactsSidebar / ChatDocPreview, which are flex columns that
+   expect to fill their container's height - make them stretch inside the drawer. */
+@keyframes chat-rail-drawer-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+/* CONNECTING - muted dot, slow pulse. */
+@keyframes voice-dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklch, currentColor 50%, transparent); opacity: 1; }
+  50% { box-shadow: 0 0 0 4px transparent; opacity: 0.55; }
+}
+/* §6.13: connecting is a quiet paper_dim pulse; listening glyph rides paper_dim.
+   Only SPEAKING and PROCESSING wear the marker (the pen is working). */
+@keyframes sigma-pulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+
+/* ---- Session-deliverables sidebar (the headline feature) ------------------ */
+
+.chat-artifact { border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--surface-bg); overflow: hidden; }
+
+/* Raw diff inside the modal - reuses .artifact-diff-line classes, own scroll handled by
+   the modal body, so no inner max-height clamp here. */
+
+@keyframes artifact-modal-scrim-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes artifact-modal-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ---- ⌘K command palette (item-8) -----------------------------------------
+   FTS5 global search modal. Reuses the artifact-modal keyframes (scrim-in +
+   modal-in) verbatim - no new motion values. Tokens only; theme-adaptive.
+   The global prefers-reduced-motion block (index.css) collapses both anims. */
+.cmdk-overlay {
+  position: fixed; inset: 0; z-index: 70;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 12vh 16px 16px;
+}
+.cmdk-scrim {
+  position: absolute; inset: 0;
+  background: var(--scrim);
+  animation: artifact-modal-scrim-in 160ms ease-out;
+}
+.cmdk-modal {
+  position: relative;
+  display: flex; flex-direction: column;
+  width: min(640px, 100%);
+  max-height: min(70vh, 640px);
+  /* INKLINE command-glass (§2.1/§2.2 scrim doctrine): glass speaks the
+     room's own ground at 0.92 with a hairline at 0.12; blur stays as the
+     sanctioned backdrop treatment on command chrome. */
+  background: var(--glass-fill);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: 20px; /* §5.2 radius_elevated - floating command surface */
+  box-shadow: 0 24px 60px var(--shadow-strong-color);
+  overflow: hidden;
+  animation: artifact-modal-in 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.cmdk-input-row {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.cmdk-input-icon { flex-shrink: 0; color: var(--fg-subtle); }
+.cmdk-input {
+  flex: 1 1 auto; min-width: 0;
+  border: none; background: transparent; outline: none;
+  color: var(--fg);
+  font-size: 1rem;
+}
+.cmdk-input::placeholder { color: var(--fg-subtle); }
+.cmdk-esc-hint {
+  flex-shrink: 0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--surface-bg);
+  font-size: 0.6875rem;
+  color: var(--fg-subtle);
+  line-height: 1;
+}
+.cmdk-results { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 6px; }
+.cmdk-state {
+  margin: 0; padding: 18px 12px;
+  font-size: 0.8125rem; line-height: 1.5; color: var(--fg-subtle);
+  text-align: center;
+}
+.cmdk-state--error { color: var(--status-error-text); }
+.cmdk-state--hint { color: var(--fg-subtle); }
+
+.cmdk-listbox { list-style: none; margin: 0; padding: 0; }
+.cmdk-group { margin: 0 0 4px; }
+.cmdk-group-label {
+  margin: 0; padding: 8px 10px 4px;
+  font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--fg-subtle);
+}
+.cmdk-group-list { list-style: none; margin: 0; padding: 0; }
+.cmdk-option {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.cmdk-option.is-active { background: var(--surface-2); }
+.cmdk-option-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cmdk-option-title {
+  font-size: 0.875rem; color: var(--fg);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cmdk-snippet {
+  font-size: 0.75rem; color: var(--fg-muted); line-height: 1.4;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cmdk-mark {
+  background: var(--accent-marker-soft);
+  color: var(--fg);
+  border-radius: 4px;
+  padding: 0 1px;
+}
+.cmdk-option-enter { flex-shrink: 0; color: var(--accent-marker-text); }
+/* A live dot breathes (same calm idiom as the working avatar); terminal dots sit still.
+   Global reduced-motion neutralises this to a static dot. */
+@keyframes chat-subagent-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(0.82); }
+}
+/* Feedback #3: the thread shows only a slim "approval waiting →" marker; the action lives in
+   the rail. The marker is amber-toned (warning = needs action) and docks under the turn. */
+@keyframes chat-marker-breath {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--status-warning) 30%, transparent); }
+  50%      { box-shadow: 0 0 0 4px transparent; }
+}
+/* A marker-click flash pulls the eye to the just-focused item. */
+@keyframes chat-rail-flash {
+  0% { background: color-mix(in oklch, var(--status-warning) 16%, var(--surface-bg)); }
+  100% { background: var(--surface-bg); }
+}
+
+/* ---- Journal-page conversation crystallisation ---------------------------- */
+@keyframes orbiting-mote {
+  from { transform: rotate(0deg) translateX(9px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(9px) rotate(-360deg); }
+}
+
+/* ---- Section chrome (lives at the tail of the MAIN reading column) -------- */
+.mg-section { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border-subtle); }
+.mg-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.mg-title {
+  display: flex; align-items: center; gap: 6px; margin: 0;
+  font-size: 0.8125rem; font-weight: 460; color: var(--fg-muted);
+}
+.mg-title svg { color: var(--fg-subtle); }
+.mg-header-controls { display: flex; gap: 6px; }
+.mg-control {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 4px;
+  border: 1px solid var(--border); background: var(--surface-1); color: var(--fg-muted);
+  cursor: pointer; transition: background 120ms ease-out, color 120ms ease-out, border-color 120ms ease-out;
+}
+.mg-control:hover { background: var(--surface-2); color: var(--fg); border-color: var(--fg-subtle); }
+.mg-control:focus-visible { outline: 2px solid var(--accent-marker); outline-offset: 2px; }
+
+/* ---- The inline canvas frame --------------------------------------------- */
+.mg-canvas {
+  position: relative;
+  width: 100%; height: 460px;
+  border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface-bg);
+  overflow: hidden;
+}
+.mg-canvas--loading { display: flex; align-items: center; justify-content: center; }
+.mg-loading-note { font-size: 0.8125rem; color: var(--fg-subtle); }
+.mg-canvas-fallback { width: 100%; height: 100%; background: var(--surface-bg); }
+
+/* React Flow surface - flat, no glass (§9.5), warm-charcoal canvas. */
+.mg-canvas .react-flow,
+.mg-fullscreen .react-flow { background: transparent; }
+.mg-canvas .react-flow__attribution,
+.mg-fullscreen .react-flow__attribution { display: none; }
+.mg-bg { color: var(--border-subtle); }
+
+/* ---- The custom node: three-generation weight ladder (§8.9.1) ------------- */
+.mg-node {
+  box-sizing: border-box;
+  display: flex; flex-direction: column; gap: 4px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  padding: 8px 10px;
+  cursor: pointer;
+  /* Inner-wrapper transform/opacity only - NEVER React Flow position. Hover/press lift via --mg-hover-spring; colour via ease-out.
+     The global prefers-reduced-motion collapse (index.css) neutralises transform. */
+  transform: translateZ(0);
+  transition:
+    background 120ms ease-out,
+    border-color 120ms ease-out,
+    box-shadow 120ms ease-out,
+    transform var(--mg-hover-spring);
+}
+/* §2.1 constellation entrance - generation-staggered fade + scale-in. Each node
+   carries its own --mg-enter-delay (computed in buildGraph). graphEntrance =
+   springGentle linear() from Motion Studio MCP (bounce 0.18, dur 0.42 → 400ms). */
+.mg-canvas[data-entering="true"] .mg-node,
+.mg-fullscreen[data-entering="true"] .mg-node {
+  animation: mg-node-enter var(--mg-enter-spring) both;
+  animation-delay: var(--mg-enter-delay, 0ms);
+}
+@keyframes mg-node-enter {
+  from { opacity: 0; transform: scale(0.96) translateZ(0); }
+  to   { opacity: 1; transform: scale(1) translateZ(0); }
+}
+/* Edges trail their target node by 80ms; fade only (CSS ease-out 120ms). */
+.mg-canvas[data-entering="true"] .react-flow__edge,
+.mg-fullscreen[data-entering="true"] .react-flow__edge {
+  animation: mg-edge-enter 120ms ease-out both;
+  animation-delay: var(--mg-edge-enter-delay, 200ms);
+}
+@keyframes mg-edge-enter { from { opacity: 0; } to { opacity: 1; } }
+.mg-node-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.mg-node-icon { flex: 0 0 auto; color: var(--fg-muted); }
+.mg-node-title {
+  min-width: 0; flex: 1 1 auto;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 0.9375rem; font-weight: 520; color: var(--fg); line-height: 1.3;
+}
+.mg-node-subtitle {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 0.75rem; color: var(--fg-muted);
+}
+.mg-node-degree { display: flex; gap: 8px; font-size: 0.7rem; color: var(--fg-muted); }
+.mg-node-degree-part { font-variant-numeric: tabular-nums; }
+
+/* Gen-0 (focus): 200px, lifted surface, 2px BRASS left-edge + brass icon + the
+   single-layer resting brass ring (§8.9.2). The ONLY chromatic moment. */
+.mg-node[data-gen="0"] {
+  width: var(--graph-node-w-0);
+  background: var(--surface-2);
+  border-radius: 10px;
+  border-left: 2px solid var(--graph-focus-edge);
+  box-shadow: var(--graph-focus-glow);
+  padding: 16px;
+  cursor: default;
+}
+.mg-node[data-gen="0"] .mg-node-icon { color: var(--accent-marker-text); }
+/* Gen-0 title: 2-line clamp - long focus titles wrap to two
+   lines then ellipsize, never overflow the 200px card or push the layout. */
+.mg-node[data-gen="0"] .mg-node-title {
+  font-size: 1.125rem; font-weight: 520; white-space: normal;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* Gen-1 (neighbour): 168px, default plane, cream title, muted icon. */
+.mg-node[data-gen="1"] { width: var(--graph-node-w-1); }
+
+/* Gen-2 (grandchild): 132px. Recedes via FILL + BORDER at full opacity (GL-003
+   v3.1 §8.9.9 - opacity dimming failed WCAG on the title; the node now sits back
+   tonally instead). Muted title, no degree chip (§8.9.1). */
+.mg-node[data-gen="2"] {
+  width: var(--graph-node-w-2);
+  background: var(--graph-gen2-fill);
+  border-color: var(--graph-gen2-border);
+  opacity: 1;
+}
+.mg-node[data-gen="2"] .mg-node-title,
+.mg-node[data-gen="2"] .mg-node-icon,
+.mg-node[data-gen="2"] .mg-node-degree { color: var(--fg-muted); }
+
+/* Non-clickable / dangling: muted title regardless of gen, no pointer
+   (matches OutboundPanel's outbound-plain, §8.9.3). */
+.mg-node--plain { cursor: default; }
+.mg-node--plain .mg-node-title { color: var(--fg-muted); }
+
+/* Hover (Gen-1/Gen-2): §2.2. 1.02 scale + -2px lift on graphHover spring,
+   surface lift + quiet non-brass border step on ease-out 120ms. Keyed off a
+   data-hover ATTRIBUTE. Brass stays on focus only (§8.9.5). */
+.mg-node[data-gen="1"][data-hover="true"],
+.mg-node[data-gen="2"][data-hover="true"] {
+  background: var(--surface-2);
+  border-color: var(--graph-node-hover-border);
+  transform: translateY(-2px) scale(1.02) translateZ(0);
+}
+/* §2.6 hop press-confirm: scale down then spring back. data-pressing is set for
+   one frame on click (the "I heard you" before navigate). */
+.mg-node[data-pressing="true"] {
+  transform: scale(0.98) translateZ(0);
+  transition: transform 120ms ease-out;
+}
+
+/* Compact-LOD dot (>60 nodes): Gen-2 collapses to an icon-only chip; the title
+   returns on hover (§8.9.5). Width shrinks to the icon. */
+.mg-node--dot {
+  width: auto; min-width: var(--graph-node-h-2); height: var(--graph-node-h-2);
+  padding: 6px; justify-content: center; align-items: center;
+}
+.mg-node--dot .mg-node-title { display: none; }
+.mg-node--dot:hover {
+  width: var(--graph-node-w-2);
+  z-index: 10;
+}
+.mg-node--dot:hover .mg-node-title { display: block; }
+
+/* "+N more" overflow node (§8.9.5): Gen-2 size, lifted surface (reads actionable),
+   DASHED subtle border (an affordance, not a real note), … glyph, no chip, no brass. */
+.mg-node--overflow {
+  width: var(--graph-node-w-2);
+  flex-direction: row; align-items: center; gap: 6px;
+  background: var(--surface-2);
+  border: 1px dashed var(--border-subtle);
+  opacity: 1;
+}
+.mg-node--overflow .mg-node-icon { color: var(--fg-muted); }
+.mg-node--overflow .mg-node-title { font-size: 0.8125rem; font-weight: 460; color: var(--fg-muted); white-space: nowrap; }
+
+/* Handles are layout anchors only - invisible (we draw cards, not ports). */
+.mg-handle { opacity: 0; width: 1px; height: 1px; min-width: 0; min-height: 0; border: none; pointer-events: none; }
+
+/* React Flow node focus ring (keyboard nav) - the §6.3 brass focus-ring exception.
+   :focus-visible gets the SOLID 2px brass ring (--graph-focus-ring, a11y); the
+   resting --graph-focus-glow is decorative only (Gen-0). GL-003 v3.1 §8.9.9. */
+.mg-canvas .react-flow__node:focus,
+.mg-canvas .react-flow__node:focus-visible,
+.mg-fullscreen .react-flow__node:focus,
+.mg-fullscreen .react-flow__node:focus-visible { outline: none; }
+.react-flow__node:focus-visible .mg-node {
+  outline: none;
+  box-shadow: var(--graph-focus-ring);
+  transition: box-shadow 120ms ease-out;
+}
+/* React the layout <Controls> container + our +/−/recenter ControlButtons. No hue at
+   rest (surface/border tokens only); brass only on hover/focus per the house
+   pattern (matches .mg-control); --graph-focus-ring for keyboard :focus-visible.
+   Scoped behind .mg-canvas / .mg-fullscreen so RF's default control CSS can't bleed.
+   RF's default box-shadow/background on the container is reset to a flat token surface. */
+.mg-canvas .react-flow__controls,
+.mg-fullscreen .react-flow__controls {
+  display: flex; flex-direction: column; gap: 4px;
+  margin: 12px; box-shadow: none; background: transparent; border: none;
+}
+.mg-canvas .react-flow__controls-button,
+.mg-fullscreen .react-flow__controls-button {
+  width: 28px; height: 28px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-1); color: var(--fg-muted);
+  cursor: pointer;
+  transition: background 120ms ease-out, color 120ms ease-out, border-color 120ms ease-out;
+}
+.mg-canvas .react-flow__controls-button:hover,
+.mg-fullscreen .react-flow__controls-button:hover {
+  background: var(--surface-2); color: var(--fg); border-color: var(--accent-marker);
+}
+.mg-canvas .react-flow__controls-button svg,
+.mg-fullscreen .react-flow__controls-button svg {
+  /* RF forces fill on its default icons; ours are stroke-based lucide glyphs. */
+  fill: none; max-width: none; max-height: none;
+}
+.mg-canvas .react-flow__controls-button:focus-visible,
+.mg-fullscreen .react-flow__controls-button:focus-visible {
+  outline: none; box-shadow: var(--graph-focus-ring);
+}
+/* Edges are READ-ONLY / decorative here - never selected, hovered-for-action,
+   reconnected, or clicked (only NODES navigate). React Flow renders a transparent
+   wide `.react-flow__edge-interaction` hit-path on top of every edge; with many
+   edges those invisible hit-areas blanket the pane, capture the pointer, show the
+   interactive cursor over connection lines, and block `panOnDrag`. Killing pointer
+   events on the whole edge group neutralises BOTH the visible `.react-flow__edge-path`
+   and the `.react-flow__edge-interaction` overlay, so dragging anywhere on the canvas
+   pans the viewport. Arrowhead markers are SVG defs (decorative) and still render. */
+.mg-canvas .react-flow__edge,
+.mg-fullscreen .react-flow__edge { pointer-events: none; }
+.mg-edge .react-flow__edge-path {
+  stroke: var(--graph-edge); stroke-width: 1px;
+  transition: stroke 120ms ease-out, opacity 120ms ease-out;
+}
+.mg-edge--back .react-flow__edge-path { stroke-dasharray: var(--graph-edge-dash); }
+.mg-edge--far .react-flow__edge-path { stroke: var(--graph-edge-far); opacity: 0.6; }
+.mg-edge--overflow .react-flow__edge-path { stroke-dasharray: var(--graph-edge-dash); }
+/* §2.2 connected-edge emphasis: only edges incident to the hovered node brighten
+   to --graph-edge-hover (--fg-muted). Far edges lift 0.6→1.0 alpha. NO brass leaks
+   onto non-focus edges. Applied via className from RF state. */
+.mg-edge--emphasis .react-flow__edge-path { stroke: var(--graph-edge-hover); opacity: 1; }
+/* Arrowheads inherit the resting edge token; brass is never spent on edges at rest. */
+.mg-canvas .react-flow__arrowhead polyline,
+.mg-canvas .react-flow__arrowhead path,
+.mg-fullscreen .react-flow__arrowhead polyline,
+.mg-fullscreen .react-flow__arrowhead path { stroke: var(--graph-edge); fill: var(--graph-edge); }
+/* React Flow snaps position changes by default. When the canvas carries
+   data-reflowing, the node WRAPPER transform eases to its new translate - free,
+   compositor-only. The attribute is set only for the reflow
+   window, so the transition is OFF during entrance and OFF during pan/zoom (no lag).
+   Viewport transform is NEVER transitioned (panning would drift). */
+.mg-canvas[data-reflowing="true"] .react-flow__node,
+.mg-fullscreen[data-reflowing="true"] .react-flow__node {
+  transition: transform var(--graph-reflow-duration) var(--graph-fit-ease);
+}
+
+/* §2.6 hop-nav depart fade: the leaving canvas fades fast (25% rule). */
+.mg-canvas[data-departing="true"] .react-flow__viewport,
+.mg-fullscreen[data-departing="true"] .react-flow__viewport {
+  opacity: 0; transition: opacity 120ms ease-out;
+}
+
+/* ---- Fullscreen overlay (pop-to-fullscreen, same graph) -------------------
+   Rendered via createPortal to <body> (MiniGraph.tsx) so it escapes the
+   .note-view subtree, whose residual `animate-fade-rise` transform would
+   otherwise make it the containing block and box this overlay to the ~980px
+   reading column. Belt-and-suspenders: pin the full viewport explicitly and
+   reset any max-width that could leak in, so the canvas is edge-to-edge
+   regardless of cascade. */
+.mg-fullscreen {
+  position: fixed; inset: 0; z-index: 1000;
+  width: 100vw; height: 100vh; max-width: none;
+  display: flex; flex-direction: column;
+  background: var(--surface-bg);
+  /* Flat scrim-equivalent - solid surface, NO glass/blur (§9.5).
+     §2.5 open: scrim+panel opacity 0→1, scale 0.98→1 on springOpen (450ms). */
+  animation: mg-fs-open 450ms var(--graph-fit-ease) both;
+  transform-origin: center;
+}
+.mg-fullscreen[data-closing="true"] {
+  animation: mg-fs-close 350ms var(--graph-fit-ease) both;
+}
+@keyframes mg-fs-open {
+  from { opacity: 0; transform: scale(0.98); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes mg-fs-close {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.98); }
+}
+/* §2.5 inner graph: fade the whole canvas in, no per-node restagger (same nodes,
+   just re-framed). 200ms whole-canvas fade. */
+.mg-fullscreen-canvas .react-flow__viewport { animation: mg-edge-enter 200ms ease-out both; }
+.mg-fullscreen-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; border-bottom: 1px solid var(--border);
+}
+.mg-fullscreen-canvas { flex: 1 1 auto; width: 100%; min-width: 0; min-height: 0; }
+/* The lazy canvas root (CanvasInner's div) and React Flow fill the overlay. */
+.mg-fullscreen-canvas > div,
+.mg-fullscreen-canvas .react-flow { width: 100%; height: 100%; }
+
+/* ---- Reduced motion: belt-and-suspenders on top of the global collapse -----
+   The global index.css RM block zeroes ALL transition-duration to 0.01ms with
+   !important - that neutralises hover scale, reflow, press, edge brighten timing.
+   Here we also kill the entrance/fullscreen ANIMATIONS (the global block only
+   touches animation-duration, but we force opacity-only + no transform so RM gets
+   a clean opacity fade, never scale/translate). fitView durations are gated in JS
+   via MOTION_OK (the highest-risk vestibular offender - CSS can't reach them). */
+@media (prefers-reduced-motion: reduce) {
+  .mg-node, .mg-control { transition: none; }
+  .mg-canvas[data-entering="true"] .mg-node,
+  .mg-fullscreen[data-entering="true"] .mg-node {
+    animation: mg-edge-enter 100ms ease-out both;
+  }
+  .mg-node[data-hover="true"],
+  .mg-node[data-pressing="true"] { transform: none; } /* colour-only feedback */
+  .mg-fullscreen { animation: mg-edge-enter 100ms ease-out both; transform: none; }
+  .mg-fullscreen[data-closing="true"] { animation: mg-fs-fade-out 100ms ease-out both; transform: none; }
+  .mg-canvas[data-reflowing="true"] .react-flow__node,
+  .mg-fullscreen[data-reflowing="true"] .react-flow__node { transition: none; }
+}
+@keyframes mg-fs-fade-out { from { opacity: 1; } to { opacity: 0; } }
+
+/* ---- Responsive: shorter canvas on narrow viewports ----------------------- */
+@media (max-width: 768px) {
+  .mg-canvas { height: 360px; }
+}
+
+/* Skeleton state - just the orb, no rings. */
+
+@keyframes stoic-ring-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Opacity-only entrance (no movement on the flipped/above transform, so the
+   clamp/flip placement is never disturbed). Reduced-motion collapse neutralises
+   it; the box still appears, just without the 120ms ramp. */
+@keyframes stoic-preview-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ---- Save status indicator --------------------------------- */
+@keyframes wb-save-enter {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* "Saving" cue: a single dot breathing 1200ms (§3.2-B) - NO spinner. */
+@keyframes wb-save-breath {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 1; }
+}
+
+/* "Saved": the check glyph pops ONCE on springPunctuate (§3.2-C) - the one
+   earned-delight beat. No brass on it (§6.3). */
+@keyframes wb-check-pop {
+  from { transform: scale(0.9); }
+  to   { transform: scale(1); }
+}
+
+/* NoteView header: pill left, discuss trigger right, one calm row. */
+.note-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+/* ==========================================================================
+   2.0.0 additions: read-only affordances, the folders form, the dashboard's
+   week and life sections, and the team insights / tasks pages. Tokens only.
+   ========================================================================== */
+.note-open-obsidian {
+  display: inline-flex; align-items: center; gap: 4px; margin-left: auto;
+  font-size: 0.8125rem; color: var(--accent-marker-text); text-decoration: none;
+  border-radius: 4px; padding: 2px 4px;
+}
+.note-open-obsidian:hover { text-decoration: underline; }
+.note-open-obsidian:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+.side-panel .note-open-obsidian { margin: 8px 0 0; }
+.note-header-row { flex-wrap: wrap; justify-content: flex-start; }
+.note-header-row .note-type-pill { margin-bottom: 0; }
+
+.meta-raw { margin-top: 10px; }
+.meta-raw > summary { cursor: pointer; font-size: 0.8125rem; color: var(--fg-muted); }
+.meta-raw > summary:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; border-radius: 4px; }
+
+.jt-kinds, .insights-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs); margin-bottom: var(--space-md); }
+
+.settings-folders { display: flex; flex-direction: column; gap: 14px; }
+.settings-field { display: flex; flex-direction: column; gap: 4px; }
+.settings-input {
+  width: 100%; min-height: 36px; padding: 6px 10px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface-input); color: var(--fg);
+  font: inherit; font-size: 0.875rem;
+}
+.settings-input:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+.settings-input:disabled { opacity: 0.6; }
+.insights-filter .settings-input { width: auto; min-width: 180px; }
+.settings-field-status { font-size: 0.8125rem; color: var(--status-warning); }
+.settings-field-status[data-ok='true'] { color: var(--status-success); }
+.settings-folders-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); }
+.settings-foot { display: flex; align-items: center; gap: 6px; }
+
+.hub-today-check { color: var(--fg-subtle); display: inline-flex; }
+.hub-today-text[data-done] { color: var(--fg-muted); text-decoration: line-through; }
+a.hub-today-text { color: var(--fg); text-decoration: none; }
+a.hub-today-text:hover { text-decoration: underline; }
+a.hub-today-text:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; border-radius: 4px; }
+.hub-week { display: flex; flex-direction: column; gap: 10px; }
+.hub-week-highlight { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; color: var(--fg); }
+.hub-week-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-subtle); }
+.hub-week-priorities { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.hub-week-priorities li { display: flex; align-items: center; gap: 8px; color: var(--fg); }
+.hub-week-priorities li svg { color: var(--fg-subtle); flex: 0 0 auto; }
+.hub-week-priorities li[data-done] { color: var(--fg-muted); text-decoration: line-through; }
+.hub-life { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-md); }
+.hub-life[data-stale] { opacity: 0.8; }
+.hub-life-col { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+
+.tasks-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--planner-col-gap); align-items: start; }
+.tasks-col {
+  display: flex; flex-direction: column; gap: var(--space-xs); padding: var(--planner-col-pad);
+  border-radius: var(--planner-lane-radius); background: var(--surface-1); border: 1px solid var(--border-subtle);
+}
+.team-journal-li[data-status='superseded'] { opacity: 0.6; }
+
+.hub-head .hub-today-link { display: inline-flex; align-items: center; gap: 6px; }
