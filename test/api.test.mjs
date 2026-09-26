@@ -292,3 +292,12 @@ test('M10: a relative folder path is refused in plain words', async () => {
   assert.match(body.error, /^The ICOR for Life folder must be a full path/);
   assert.equal(/contentRoot/.test(body.error), false, 'no internal field names on screen');
 });
+
+test('L8: the API guard ignores letter case, like Express routing does', async () => {
+  const nav = { 'Sec-Fetch-Site': 'cross-site', 'Sec-Fetch-Mode': 'navigate', 'Sec-Fetch-Dest': 'document' };
+  for (const p of ['/API/status', '/Api/status', '/api/Status', '/API/team/agents']) {
+    assert.equal((await raw(p, nav)).status, 403, p);
+  }
+  // Negative control: the shell itself still opens from a link.
+  assert.equal((await raw('/', nav)).status, 200);
+});

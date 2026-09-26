@@ -97,7 +97,8 @@ export function createApp(store, { port = 4317 } = {}) {
     const isDocNav = req.method === 'GET'
       && req.get('Sec-Fetch-Mode') === 'navigate'
       && req.get('Sec-Fetch-Dest') === 'document'
-      && !req.path.startsWith('/api/');
+      // Express matches routes without regard to case, so this check must too (D5 L8).
+      && !/^\/api(\/|$)/i.test(req.path);
     if (site && site !== 'same-origin' && site !== 'none' && !isDocNav) return res.status(403).json({ error: 'forbidden' });
     res.set('Cross-Origin-Resource-Policy', 'same-origin');
     return next();
