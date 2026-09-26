@@ -1,0 +1,152 @@
+# release.yml: the Cockpit release, on a bare x.y.z tag (Marshall's spec).
+#
+#   release     guards (tag = package.json, tag commit on main), install, build,
+#               tests, the asset `git archive` of the tag built twice and
+#               compared byte for byte, a DRAFT release with the CHANGELOG
+#               section as notes, the asset uploaded to the draft.
+#   provenance  its own job, the only one with id-token: rebuilds the archive
+#               from the tag, refuses unless it equals the uploaded asset, and
+#               signs it (attest-build-provenance, pinned v4.2.2).
+#   publish     downloads the draft asset, `gh attestation verify` must pass on
+#               it and must FAIL on a copy with one byte changed, then publishes.
+#
+# Every action is pinned to a commit SHA. The repo is private on the free
+# plan today; artifact attestations need a public repo there, so provenance
+# works once D7 makes the repo public. Until then the run stops at provenance
+# and the release stays a draft: nothing half-published.
+name: release
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+    outputs:
+      version: ${{ steps.tag.outputs.version }}
+      sha256: ${{ steps.asset.outputs.sha256 }}
+      asset: ${{ steps.asset.outputs.asset }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Guard, the tag equals package.json
+        id: tag
+        run: node scripts/release-check.mjs tag "$GITHUB_REF_NAME" | tee -a "$GITHUB_OUTPUT"
+      - name: Guard, the tag commit is on main
+        run: |
+          git fetch --quiet origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main \
+            || { echo "::error::$GITHUB_REF_NAME points at a commit that is not on main"; exit 1; }
+      - name: Release notes from the dated CHANGELOG section
+        run: node scripts/release-check.mjs notes "$GITHUB_REF_NAME" "$RUNNER_TEMP/notes.md"
+      - name: Install, build, test
+        run: |
+          npm run install:all
+          npm run build
+          npm test
+      - name: The asset, git archive of the tag, built twice and byte-identical
+        id: asset
+        run: |
+          set -euo pipefail
+          name="icor-for-life-cockpit-${GITHUB_REF_NAME}"
+          git archive --format=tar.gz --prefix="$name/" -o "$RUNNER_TEMP/a.tar.gz" "$GITHUB_SHA"
+          git archive --format=tar.gz --prefix="$name/" -o "$RUNNER_TEMP/b.tar.gz" "$GITHUB_SHA"
+          cmp "$RUNNER_TEMP/a.tar.gz" "$RUNNER_TEMP/b.tar.gz" \
+            || { echo "::error::two builds of the asset differ"; exit 1; }
+          mv "$RUNNER_TEMP/a.tar.gz" "$RUNNER_TEMP/$name.tar.gz"
+          echo "asset=$name.tar.gz" >> "$GITHUB_OUTPUT"
+          echo "sha256=$(sha256sum "$RUNNER_TEMP/$name.tar.gz" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+      - name: Draft the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --draft --verify-tag --title "Cockpit $GITHUB_REF_NAME" --notes-file "$RUNNER_TEMP/notes.md" -R "$GITHUB_REPOSITORY"
+      - name: Upload the asset to the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ASSET: ${{ steps.asset.outputs.asset }}
+        run: gh release upload "$GITHUB_REF_NAME" "$RUNNER_TEMP/$ASSET" -R "$GITHUB_REPOSITORY"
+
+  provenance:
+    needs: release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Rebuild the asset from the tag; it must be the uploaded bytes
+        env:
+          ASSET: ${{ needs.release.outputs.asset }}
+          WANT: ${{ needs.release.outputs.sha256 }}
+        run: |
+          set -euo pipefail
+          [ "$(git rev-parse "refs/tags/$GITHUB_REF_NAME^{commit}")" = "$GITHUB_SHA" ] \
+            || { echo "::error::tag $GITHUB_REF_NAME is not $GITHUB_SHA; not attesting"; exit 1; }
+          git archive --format=tar.gz --prefix="${ASSET%.tar.gz}/" -o "$ASSET" "$GITHUB_SHA"
+          got="$(sha256sum "$ASSET" | cut -d' ' -f1)"
+          [ "$got" = "$WANT" ] || { echo "::error::rebuilt $got, released $WANT"; exit 1; }
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: ${{ needs.release.outputs.asset }}
+
+  publish:
+    needs: [release, provenance]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Verify the draft asset, and watch the verify refuse one byte changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ASSET: ${{ needs.release.outputs.asset }}
+        run: |
+          set -euo pipefail
+          gh release download "$GITHUB_REF_NAME" -p "$ASSET" -R "$GITHUB_REPOSITORY" -D dl
+          V=(--repo "$GITHUB_REPOSITORY" --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml"
+             --source-ref "refs/tags/$GITHUB_REF_NAME" --deny-self-hosted-runners)
+          gh attestation verify "dl/$ASSET" "${V[@]}"
+          # The red case: one byte changed in a copy must fail the same verify.
+          cp "dl/$ASSET" bad.tar.gz
+          printf '\x00' | dd of=bad.tar.gz bs=1 seek=100 count=1 conv=notrunc status=none
+          if gh attestation verify bad.tar.gz "${V[@]}" >/dev/null 2>&1; then
+            echo "::error::verify passed an asset with one byte changed; not publishing"
+            exit 1
+          fi
+          echo "verify refused the one-byte copy, as it must"
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit "$GITHUB_REF_NAME" --draft=false --latest -R "$GITHUB_REPOSITORY"
