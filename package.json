@@ -1,7 +1,7 @@
 {
   "name": "icor-for-life-cockpit",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "ICOR for Life - Cockpit: a local, read-only viewer over your ICOR for Life folder (knowledge and Planner tasks), with an optional AI team folder for agents, insights and analytics.",
   "license": "MIT",
   "type": "module",

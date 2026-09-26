@@ -4,6 +4,19 @@ All notable changes to the ICOR for Life - Cockpit are documented here.
 The format follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/)
 and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-09-26
+
+The first published release of the ICOR for Life - Cockpit. Everything the
+2.0.0 section below lists ships for the first time here.
+
+### Fixed
+
+- **The test run works on Node.js 22 and later.** `npm test` passed the test
+  folder to `node --test` as a path; Node.js 22 reads that as a module and
+  stops. It now names the test files. The release run of 2.0.0 stopped at
+  exactly this step, before anything was built or published. The tag `2.0.0`
+  exists, but 2.0.0 was never released, and a tag never moves.
+
 ## [2.0.0] - 2026-09-26
 
 The myPKA Cockpit 1.6.0, retargeted as a standalone viewer for ICOR for Life.

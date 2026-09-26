@@ -5,7 +5,7 @@ tasks in your Planner, on one screen in your browser. Connect a second folder (o
 the same one) and it also shows your AI team: the agents, what they learned, their
 session logs, their tasks and the analytics.
 
-Version 2.0.0. MIT licence. Runs on your machine only (`127.0.0.1`), never writes
+Version 2.0.1. MIT licence. Runs on your machine only (`127.0.0.1`), never writes
 to your notes, and needs no database.
 
 ## What it shows

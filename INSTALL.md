@@ -62,7 +62,7 @@ and Linux, `%USERPROFILE%\Apps\icor-for-life-cockpit` on Windows. It must be **o
 ICOR for Life folder.
 
 Get the files from the latest release of `myICOR/icor-for-life-cockpit`. Use the release asset
-named `icor-for-life-cockpit-<version>.tar.gz` (for example `icor-for-life-cockpit-2.0.0.tar.gz`),
+named `icor-for-life-cockpit-<version>.tar.gz` (for example `icor-for-life-cockpit-2.0.1.tar.gz`),
 not GitHub's automatic "Source code" zip: only the asset carries a signed build record. Download
 it into the folder that will hold the Cockpit folder (`~/Apps`, or `%USERPROFILE%\Apps` on
 Windows), from the release page in a browser or with the GitHub CLI:
@@ -71,10 +71,10 @@ Windows), from the release page in a browser or with the GitHub CLI:
 gh release download --repo myICOR/icor-for-life-cockpit --pattern "icor-for-life-cockpit-*.tar.gz"
 ```
 
-**Verify it before you unpack it.** Replace `2.0.0` with the version you downloaded, in both places:
+**Verify it before you unpack it.** Replace `2.0.1` with the version you downloaded, in both places:
 
 ```bash
-gh attestation verify icor-for-life-cockpit-2.0.0.tar.gz --repo myICOR/icor-for-life-cockpit --signer-workflow myICOR/icor-for-life-cockpit/.github/workflows/release.yml --source-ref refs/tags/2.0.0 --deny-self-hosted-runners
+gh attestation verify icor-for-life-cockpit-2.0.1.tar.gz --repo myICOR/icor-for-life-cockpit --signer-workflow myICOR/icor-for-life-cockpit/.github/workflows/release.yml --source-ref refs/tags/2.0.1 --deny-self-hosted-runners
 ```
 
 It must end with `Verification succeeded!`. It proves the file was built by this repository's
@@ -89,7 +89,7 @@ unpack the file, and tell the person. If `gh` is missing, the person installs th
 
 ```bash
 mkdir icor-for-life-cockpit
-tar -xzf icor-for-life-cockpit-2.0.0.tar.gz -C icor-for-life-cockpit --strip-components=1
+tar -xzf icor-for-life-cockpit-2.0.1.tar.gz -C icor-for-life-cockpit --strip-components=1
 ```
 
 Then delete the `.tar.gz` file and go into the folder:
@@ -160,7 +160,7 @@ Port `4317` taken by something else? Make the launcher again with `--port 4417` 
 The person opens the launcher. A window shows:
 
 ```
-  ICOR for Life - Cockpit v2.0.0
+  ICOR for Life - Cockpit v2.0.1
   serving:  http://127.0.0.1:4317  (loopback only, read-only)
 ```
 

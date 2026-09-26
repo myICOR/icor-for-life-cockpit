@@ -24,6 +24,9 @@ import { compare } from '../scripts/check-no-autostart.mjs';
 import { tempCopy } from './helpers.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+// The version the launcher must carry is package.json's, never a literal here:
+// a literal went stale on the first version bump (2.0.1).
+const VERSION = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
 
 /** Anything that registers a program to start on its own, on any OS. */
 const AUTOSTART_RE =
@@ -128,7 +131,7 @@ test('a launcher is the template with exactly three values filled in', () => {
     const { text, file } = buildLauncher({ platform, port: 4999 });
     assert.doesNotMatch(text, /\{\{[A-Z_]+\}\}/, `${platform}: placeholder left`);
     assert.ok(text.includes('4999'), `${platform}: port missing`);
-    assert.ok(text.includes('2.0.0'), `${platform}: version missing`);
+    assert.ok(text.includes(VERSION), `${platform}: version ${VERSION} missing`);
     assert.ok(file.length > 0);
     for (const l of codeLines(text)) assert.doesNotMatch(l, AUTOSTART_RE, `${platform}: ${l}`);
   }
