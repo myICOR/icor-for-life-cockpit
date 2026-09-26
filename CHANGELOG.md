@@ -4,7 +4,7 @@ All notable changes to the ICOR for Life - Cockpit are documented here.
 The format follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/)
 and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - unreleased
+## [2.0.0] - 2026-09-26
 
 The myPKA Cockpit 1.6.0, retargeted as a standalone viewer for ICOR for Life.
 
