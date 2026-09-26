@@ -61,13 +61,45 @@ check again.
 and Linux, `%USERPROFILE%\Apps\icor-for-life-cockpit` on Windows. It must be **outside** the
 ICOR for Life folder.
 
-Get the files from the release page of `myICOR/icor-for-life-cockpit` (download the source zip of
-the latest release and unzip it there), or clone the repository into that folder. Then go into it:
+Get the files from the latest release of `myICOR/icor-for-life-cockpit`. Use the release asset
+named `icor-for-life-cockpit-<version>.tar.gz` (for example `icor-for-life-cockpit-2.0.0.tar.gz`),
+not GitHub's automatic "Source code" zip: only the asset carries a signed build record. Download
+it into the folder that will hold the Cockpit folder (`~/Apps`, or `%USERPROFILE%\Apps` on
+Windows), from the release page in a browser or with the GitHub CLI:
+
+```bash
+gh release download --repo myICOR/icor-for-life-cockpit --pattern "icor-for-life-cockpit-*.tar.gz"
+```
+
+**Verify it before you unpack it.** Replace `2.0.0` with the version you downloaded, in both places:
+
+```bash
+gh attestation verify icor-for-life-cockpit-2.0.0.tar.gz --repo myICOR/icor-for-life-cockpit --signer-workflow myICOR/icor-for-life-cockpit/.github/workflows/release.yml --source-ref refs/tags/2.0.0 --deny-self-hosted-runners
+```
+
+It must end with `Verification succeeded!`. It proves the file was built by this repository's
+release workflow from that tag, on GitHub's own runners, and was not changed since.
+
+If it fails: download the file again and run the check once more. If it still fails, stop: do not
+unpack the file, and tell the person. If `gh` is missing, the person installs the GitHub CLI from
+<https://cli.github.com> and runs `gh auth login` once.
+
+**Unpack it** into the Cockpit folder. `tar` is built in on macOS, Linux and Windows 10 and later
+(Terminal, or PowerShell on Windows); the same two commands work on all three:
+
+```bash
+mkdir icor-for-life-cockpit
+tar -xzf icor-for-life-cockpit-2.0.0.tar.gz -C icor-for-life-cockpit --strip-components=1
+```
+
+Then delete the `.tar.gz` file and go into the folder:
 
 ```bash
 cd ~/Apps/icor-for-life-cockpit
 npm run check:node
 ```
+
+On Windows: `cd $env:USERPROFILE\Apps\icor-for-life-cockpit` in PowerShell.
 
 `check:node` must print `Node.js ... OK`.
 
