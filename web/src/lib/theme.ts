@@ -12,8 +12,7 @@
 //   paint (no flash of the wrong theme), so it lives in localStorage and is
 //   applied by a tiny inline bootstrap in index.html as well as here. localStorage
 //   survives reload and is the consistent, simplest store for a client-only,
-//   render-blocking concern (the module_prefs DB path is for Hub-module state and
-//   would round-trip a fetch after paint - wrong tool for theming).
+//   render-blocking concern (a server round-trip would land after paint).
 //
 // Tokens stay the single source of truth: this module never sets a colour, only
 // toggles which token set is active.

@@ -1,0 +1,3 @@
+# Notes
+
+One flat folder.

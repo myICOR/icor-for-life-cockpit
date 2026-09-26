@@ -42,8 +42,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 20px;
+  width: 28px;
+  height: 24px; /* SC 2.5.8 target size */
   padding: 0;
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
@@ -173,4 +173,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .theme-option { transition: none; }
+}
+
+@media (pointer: coarse) {
+  .settings-move { width: 44px; height: 44px; }
 }

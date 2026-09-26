@@ -97,6 +97,8 @@ function roster(root) {
     const contract = readText(path.join(folder, 'AGENT.md'));
     if (!contract) continue;
     const { fm, body } = splitFrontmatter(contract.text);
+    // The myPKA hire template carries the nil id; it is never a specialist (D6 M2).
+    if (/^0{8}-0{4}-0{4}-0{4}-0{12}$/.test(asText(fm.myicor_id) ?? '')) continue;
     const bioFile = readText(path.join(folder, `${d.name}.md`));
     const bio = bioFile ? splitFrontmatter(bioFile.text) : { fm: {}, body: '' };
     const name = asText(fm.name) ?? d.name;

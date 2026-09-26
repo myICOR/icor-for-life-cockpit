@@ -69,14 +69,18 @@ function FoldersSection() {
 
   const contentLine = status
     ? status.content.ok
-      ? `Connected: ${status.counts ? Object.entries(status.counts).filter(([k]) => k !== 'planner' && k !== 'documents').reduce((a, [, v]) => a + v, 0) : 0} notes indexed${status.content.unverified ? ' (unverified: no ICOR for Life 2 manifest found)' : ''}.`
+      ? `Connected: ${status.counts ? Object.entries(status.counts).filter(([k]) => k !== 'planner' && k !== 'documents').reduce((a, [, v]) => a + v, 0) : 0} notes indexed.${status.content.unverified ? ' Unverified folder: no ICOR for Life 2 manifest was found, so older paths may be missing.' : ''}`
       : status.content.reason
     : '';
   const agentsLine = status
     ? status.agents.ok
-      ? `Connected in mode ${status.mode}: ${status.agentCount} agents.`
+      ? status.mode
+        ? `Connected in mode ${status.mode}: ${status.agentCount} agents.`
+        : `Found ${status.agentCount} agents. Connect the ICOR for Life folder too.`
       : status.agents.set ? status.agents.reason : 'Not connected. Agents, insights and analytics stay hidden.'
     : '';
+  // "Saved" only when every folder that was entered is accepted (D6 M10).
+  const allAccepted = Boolean(status && status.content.ok && (status.agents.ok || !status.agents.set) && (!status.agents.ok || status.mode));
 
   return (
     <section className="settings-section" aria-labelledby="settings-folders">
@@ -89,7 +93,7 @@ function FoldersSection() {
             type="text"
             className="settings-input"
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={(e) => { setContent(e.target.value); setState({ kind: 'idle' }); }}
             placeholder="/path/to/your/ICOR for Life folder"
             spellCheck={false}
             autoComplete="off"
@@ -109,7 +113,7 @@ function FoldersSection() {
             type="text"
             className="settings-input"
             value={agents}
-            onChange={(e) => setAgents(e.target.value)}
+            onChange={(e) => { setAgents(e.target.value); setState({ kind: 'idle' }); }}
             placeholder="empty, or /path/to/your myPKA folder"
             spellCheck={false}
             autoComplete="off"
@@ -137,8 +141,11 @@ function FoldersSection() {
           </button>
           <span className="settings-status" role="status" aria-live="polite">
             {state.kind === 'saving' && <span className="settings-status-saving">Saving...</span>}
-            {state.kind === 'saved' && (
-              <span className="settings-status-saved"><Check size={14} strokeWidth={2} aria-hidden="true" /> Saved and re-read</span>
+            {state.kind === 'saved' && allAccepted && (
+              <span className="settings-status-saved"><Check size={14} strokeWidth={2} aria-hidden="true" /> Saved</span>
+            )}
+            {state.kind === 'saved' && !allAccepted && (
+              <span className="settings-status-error">Saved. Fix the folder above.</span>
             )}
             {state.kind === 'error' && <span className="settings-status-error">{state.message}</span>}
           </span>

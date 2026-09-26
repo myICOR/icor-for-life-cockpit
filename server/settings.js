@@ -53,9 +53,12 @@ export function writeSettings({ contentRoot, agentsRoot }) {
     contentRoot: clean(contentRoot),
     agentsRoot: clean(agentsRoot),
   };
+  const label = { contentRoot: 'The ICOR for Life folder', agentsRoot: 'The agents folder' };
   for (const [k, v] of Object.entries(next)) {
-    if (v != null && !path.isAbsolute(v)) throw new Error(`${k} must be an absolute path`);
-    if (v != null && v.includes('\0')) throw new Error(`${k} is not a valid path`);
+    if (v != null && v.includes('\0')) throw new Error(`${label[k]} is not a valid path.`);
+    if (v != null && !path.isAbsolute(v)) {
+      throw new Error(`${label[k]} must be a full path, starting with / (or a drive letter on Windows).`);
+    }
   }
   const file = settingsFile();
   const tmp = `${file}.tmp-${process.pid}`;

@@ -175,6 +175,8 @@ test('index: concepts, backlinks, full-path links, unparsed notes stay listed', 
     assert.equal(resolveTarget(idx, 'Morning walk').concept, 'habits');
     const broken = idx.byPath.get('04 Inner World/Notes/Broken frontmatter.md');
     assert.equal(broken.unparsed, true);
+    // M1: folder README files are room notes, not knowledge.
+    assert.equal(idx.notes.some((n) => /readme\.md$/i.test(n.path)), false);
     // WiP bodies and 07 Databases never enter the index.
     assert.equal(idx.notes.some((n) => n.path.startsWith('03 WiP') || n.path.startsWith('07 Databases')), false);
   } finally {
@@ -186,7 +188,7 @@ test('agents: roster, avatars, insights, v6 and v5 logs, tasks, AI Session metad
   const { content, agents } = makeRoots();
   try {
     const ai = buildAgentsIndex(agents);
-    assert.deepEqual(ai.agents.map((a) => a.slug), ['larry', 'penn']);
+    assert.deepEqual(ai.agents.map((a) => a.slug), ['larry', 'penn'], 'M2: the nil-id template is not a specialist');
     assert.equal(ai.agents[0].avatar, '06 AI Team/AI Team Knowledge/Avatars/larry.png');
     assert.equal(ai.insights.length, 2, 'the _template is skipped');
     assert.equal(ai.insights.find((i) => i.topic === 'old').status, 'superseded');
@@ -202,6 +204,9 @@ test('agents: roster, avatars, insights, v6 and v5 logs, tasks, AI Session metad
     const a = teamAnalytics(ai, { from: '2026-09-19', to: '2026-09-22' });
     assert.equal(a.totals.sessions, 3, 'v6 counts once per agent, v5 once');
     assert.deepEqual(a.agents.map((x) => [x.slug, x.sessions]), [['penn', 2], ['larry', 1]]);
+    // H4: the share is shown as a whole percent, computed once, here.
+    assert.deepEqual(a.agents.map((x) => x.sharePct), [67, 33]);
+    assert.equal(a.totals.meanPerSpecialist, 1.5);
     assert.equal(a.series.length, 4);
     assert.equal(a.series.find((d) => d.day === '2026-09-20').sessions, 2);
     assert.deepEqual(a.tasks.totals, { open: 1, 'in-progress': 1, done: 1, cancelled: 0 });

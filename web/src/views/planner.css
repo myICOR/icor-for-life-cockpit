@@ -38,7 +38,8 @@
   border: 1px solid var(--border-subtle);
 }
 .pb-col[data-today] { border-color: var(--planner-col-today-edge); }
-.pb-col[data-past] { opacity: 0.78; }
+.pb-col[data-past] .pb-col-date,
+.pb-col[data-past] .pb-col-weekday { color: var(--fg-subtle); }
 .pb-col-head { display: flex; align-items: baseline; gap: 8px; min-height: var(--planner-col-head-h); }
 .pb-col-weekday { font-weight: 560; color: var(--planner-dayname-fg); }
 .pb-col[data-today] .pb-col-weekday { color: var(--planner-dayname-today-fg); }
@@ -65,7 +66,8 @@
 .pb-ritual-state { font-size: 0.75rem; color: var(--fg-subtle); font-variant-numeric: tabular-nums; }
 .pb-ritual[data-state='done'] { border-style: solid; border-color: var(--status-success); }
 .pb-ritual[data-state='done'] .pb-ritual-state { color: var(--status-success); }
-.pb-ritual[data-state='missed'] .pb-ritual-state { color: var(--status-warning); }
+.pb-ritual[data-state='missed'] .pb-ritual-state { color: var(--fg-muted); }
+.pb-ritual[data-state='missed'] { border-left: 2px solid var(--status-warning); }
 
 .pb-lane { display: flex; flex-direction: column; gap: 6px; }
 .pb-lane-label { margin: 0; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--planner-lane-label); }
@@ -92,8 +94,9 @@
   font-size: 0.6875rem; padding: 1px 6px; border-radius: 999px;
   background: var(--surface-3); color: var(--fg-muted);
 }
-.pb-chip[data-prio='1'], .pb-chip[data-prio='2'] { color: var(--accent-marker-text); background: var(--accent-marker-soft); }
-.pb-chip[data-overdue] { color: var(--status-warning); background: var(--status-warning-soft); }
+.pb-chip[data-prio='1'], .pb-chip[data-prio='2'] { color: var(--fg); background: var(--accent-marker-soft); }
+.pb-chip[data-overdue] { color: var(--fg-muted); background: var(--surface-3); display: inline-flex; align-items: center; gap: 4px; }
+.pb-chip[data-overdue]::before { content: ''; width: 6px; height: 6px; border-radius: 999px; background: var(--status-warning); }
 .pb-link {
   display: inline-flex; align-items: center; gap: 3px; border: 0; background: none; padding: 1px 4px;
   font-size: 0.75rem; color: var(--accent-marker-text); cursor: pointer; border-radius: 4px; text-decoration: none;

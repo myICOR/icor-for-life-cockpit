@@ -40,10 +40,7 @@
   padding: 22px 20px 18px;
   border-radius: 16px;
   border: 1px solid color-mix(in oklch, var(--c) 28%, var(--border-subtle));
-  background:
-    linear-gradient(135deg,
-      color-mix(in oklch, var(--c) 16%, var(--surface-1)) 0%,
-      color-mix(in oklch, var(--c) 8%, var(--surface-1)) 100%);
+  background: color-mix(in oklch, var(--c) 10%, var(--surface-1)); /* flat lens, under the A159 12% ceiling */
   text-decoration: none;
   transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
               border-color 160ms ease, box-shadow 160ms ease;

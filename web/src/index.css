@@ -66,6 +66,8 @@
   --accent-marker-border: rgba(255, 90, 45, 0.38);/* marker_border app alpha step */
   --accent-marker-text: #FF5A2D;                  /* small marker TEXT - dark: marker itself clears the §2.8 floor; light steps to marker_text_on_paper (A148) */
   --text-on-marker: #180E08;
+  --accent-marker-fill: #FF5A2D;                  /* a marker FILL under text (A340) */
+  --accent-marker-fill-hover: #FF7248;
 
   /* Room chrome (§2.1 chrome line). */
   --room-wash: rgba(255, 90, 45, 0.05);   /* §5.5 fixed wash, top-right marker light (alpha ceiling) */
@@ -480,7 +482,7 @@
      meaningful non-text. NOT a small-text ink.
    • --accent-marker-text (#B93613, marker_text_on_paper) = every small marker
      TEXT string (>= 4.5:1 on all five paper grounds).
-   • --fg-subtle (#67645A) is the light faint voice (A133-corrected).
+   • --fg-subtle (#5A574E) is the light faint voice (A167).
    Glow is an ink-room device (A154): --glow-signal is none here.
    =========================================================================== */
 :root[data-theme='light'] {
@@ -501,7 +503,7 @@
   /* Foreground - warm ink ladder (§2.2 + §2.8 light grid). */
   --fg: #171A20;        /* paper_room_fg */
   --fg-muted: #4D4A42;  /* light paper_dim - secondary reading / blockquote ink */
-  --fg-subtle: #67645A;
+  --fg-subtle: #5A574E;  /* A167: the faint voice with headroom on every paper ground */
 
   /* Accent - the marker on paper (§2.2). */
   --accent-marker: #D43F16;                        /* marker_on_paper - display/fills/non-text */
@@ -513,6 +515,8 @@
   --accent-marker-border: rgba(212, 63, 22, 0.35);
   --accent-marker-text: #B93613;                   /* marker_text_on_paper (A148) */
   --text-on-marker: #FFF6F0;
+  --accent-marker-fill: #B93613;                   /* marker_fill_on_paper (A340) */
+  --accent-marker-fill-hover: #8F2E10;
 
   /* Room chrome, paper (ruling A150). */
   --room-wash: rgba(212, 63, 22, 0.03);
@@ -565,12 +569,12 @@
   --planner-rail-meeting: #565E7E;
 
   /* Status - §2.5 light column. */
-  --status-success: #67645A;
+  --status-success: #5A574E;
   --status-success-dot: #5E7A60;
   --status-warning: #8A6F33;
   --status-error: #D64545;
   --status-error-text: #B33A2B;
-  --status-info: #67645A;
+  --status-info: #5A574E;
 
   --status-success-soft: rgba(23, 26, 32, 0.06);
   --status-warning-soft: rgba(138, 111, 51, 0.14);

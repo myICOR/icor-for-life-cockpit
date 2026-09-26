@@ -47,6 +47,21 @@ function isDone(i: PlannerItem): boolean {
   return i.status === 'done' || i.doneLocal;
 }
 
+/** Open and done items planned inside the visible range (children included). */
+function weekCounts(board: PlannerBoard): { open: number; done: number } {
+  let open = 0;
+  let done = 0;
+  const walk = (items: PlannerItem[]) => {
+    for (const i of items) {
+      if (isDone(i)) done += 1;
+      else open += 1;
+      if (i.children) walk(i.children);
+    }
+  };
+  for (const c of board.columns) walk([...c.am, ...c.pm, ...c.anytime]);
+  return { open, done };
+}
+
 function PlanCard({ item }: { item: PlannerItem }) {
   const done = isDone(item);
   const overdue = !done && item.due != null && item.due < isoLocal(new Date());
@@ -119,7 +134,7 @@ function DayColumn({ col, board }: { col: PlannerColumn; board: PlannerBoard }) 
         <ul className="pb-rituals" aria-label="Habits and routines">
           {routines.map((r) => (
             <li key={r.path}>
-              <a className="pb-ritual" href={r.uri} data-state={r.marker.state} title={`${r.name}: ${markerLabel(r.marker)}`}>
+              <a className="pb-ritual" href={r.uri} data-state={r.marker.state} aria-label={`Routine ${r.name}, ${r.marker.state === 'partial' ? markerLabel(r.marker) : r.start ? `starts ${r.start}` : markerLabel(r.marker)}`}>
                 <ListChecks size={12} strokeWidth={1.5} aria-hidden="true" />
                 <span>{r.name}</span>
                 <span className="pb-ritual-state">{r.marker.state === 'partial' ? markerLabel(r.marker) : r.start ?? ''}</span>
@@ -128,7 +143,7 @@ function DayColumn({ col, board }: { col: PlannerColumn; board: PlannerBoard }) 
           ))}
           {habits.map((x) => (
             <li key={x.path}>
-              <a className="pb-ritual" href={x.uri} data-state={x.marker.state} title={`${x.name}: ${markerLabel(x.marker)}`}>
+              <a className="pb-ritual" href={x.uri} data-state={x.marker.state} aria-label={`Habit ${x.name}, ${markerLabel(x.marker)}`}>
                 <Repeat2 size={12} strokeWidth={1.5} aria-hidden="true" />
                 <span>{x.name}</span>
                 <span className="pb-ritual-state">{markerLabel(x.marker)}</span>
@@ -181,7 +196,7 @@ export function PlannerBoardView() {
       <PageHeader
         title="Planner"
         icon={CalendarRange}
-        subtitle={data ? `${data.week.week} · ${data.counts.open} open, ${data.counts.done} done. Read-only: plan in Obsidian.` : 'Your week from the ICOR Planner.'}
+        subtitle={data ? `${data.week.week} · ${weekCounts(data).open} open, ${weekCounts(data).done} done this week. Read-only: plan in Obsidian.` : 'Your week from the ICOR Planner.'}
         action={
           <div className="pb-nav" role="group" aria-label="Week">
             <button type="button" className="page-action-btn" onClick={() => shift(-1)} aria-label="Previous week">
@@ -232,7 +247,7 @@ export function PlannerBoardView() {
           )}
 
           <div className="pb-layout">
-            <div className="pb-board" role="list" aria-label="Days" ref={boardRef}>
+            <div className="pb-board" role="list" aria-label="Days of the week, scrolls sideways" tabIndex={0} ref={boardRef}>
               {data.columns.map((c) => (
                 <div role="listitem" key={c.day} className="pb-board-cell">
                   <DayColumn col={c} board={data} />

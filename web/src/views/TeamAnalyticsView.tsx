@@ -20,6 +20,8 @@ interface AgentRow {
   name: string;
   sessions: number;
   share: number;
+  /** Whole percent, rounded on the server. */
+  sharePct: number;
   role: string | null;
   avatarPath: string | null;
   firstDay: string;
@@ -149,7 +151,7 @@ export function TeamAnalyticsView() {
               {data.totals.specialists} specialists · {data.totals.sessions} runs ·{' '}
               {data.range.from} to {data.range.to}
             </p>
-            <div className="an-scroll">
+            <div className="an-scroll" role="region" aria-label="Specialists, scrollable" tabIndex={0}>
               {data.agents.length === 0 && (
                 <p className="an-msg">No sessions recorded in this range.</p>
               )}
@@ -176,14 +178,14 @@ export function TeamAnalyticsView() {
           <section className="an-card" aria-label="Summary">
             <h2 className="an-ct">Who carried the range</h2>
             <p className="an-cs">share of all runs</p>
-            <div className="an-scroll">
+            <div className="an-scroll" role="region" aria-label="Summary, scrollable" tabIndex={0}>
               {top && (
                 <div className="an-hero">
                   <Face agent={top} size="hero" />
                   <span className="an-hero-nm">{top.name}</span>
                   {top.role && <span className="an-hero-role">{top.role}</span>}
                   <span className="an-hero-sub">
-                    busiest · {top.sessions} runs · {top.share}%
+                    busiest · {top.sessions} runs · {top.sharePct}%
                   </span>
                 </div>
               )}

@@ -102,14 +102,17 @@
 }
 .an-fill {
   position: absolute; inset: 0 auto 0 0; border-radius: 12px;
-  background: linear-gradient(90deg, var(--accent-marker-soft), var(--accent-marker));
+  background: var(--fg-subtle); /* flat; the marker is spent once, on the leader (A231) */
+}
+.an-row:first-child .an-fill {
+  background: var(--accent-marker);
 }
 .an-face-pos { position: absolute; top: 50%; transform: translate(-50%, -50%); }
 .an-face, .an-hero-img { display: block; object-fit: cover; border-radius: 50%; }
 .an-face {
   width: 28px; height: 28px;
   border: 2px solid var(--surface-1);
-  box-shadow: 0 0 0 1.5px var(--accent-marker);
+  box-shadow: 0 0 0 1.5px var(--border-emphasis);
   background: var(--surface-2);
 }
 .an-initials {
@@ -132,7 +135,6 @@
 .an-hero-img {
   width: 88px; height: 88px;
   border: 3px solid var(--accent-marker);
-  box-shadow: 0 0 26px var(--accent-marker-soft);
 }
 .an-hero-img.an-initials { font-size: 1.125rem; }
 .an-hero-nm { font-size: 1rem; font-weight: 600; color: var(--fg); }
@@ -160,6 +162,6 @@
 }
 .an-spark i {
   flex: 1 1 0; min-width: 1px;
-  background: var(--accent-marker); border-radius: 1px 1px 0 0;
+  background: var(--fg-subtle); border-radius: 1px 1px 0 0;
 }
 .an-spark i.zero { background: var(--border-subtle); }

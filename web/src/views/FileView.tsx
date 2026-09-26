@@ -51,7 +51,8 @@ export function FileView({ route }: { route: Extract<Route, { name: 'file' }> })
           if (alive) setNotFound(true);
           return null;
         }
-        if (!r.ok) throw new Error(`Server responded ${r.status}`);
+        if (r.status === 403 || r.status === 404) throw new Error('This file is not in your folder any more, or the Cockpit may not show it.');
+        if (!r.ok) throw new Error(`The server answered ${r.status}.`);
         return r.text();
       })
       .then((body) => { if (alive && body !== null) setText(body); })
@@ -102,7 +103,7 @@ export function FileView({ route }: { route: Extract<Route, { name: 'file' }> })
 
       {!missing && kind === 'text' && textError && (
         <div className="file-view-reading">
-          <p role="alert" className="ft-preview-note">Could not load the file: {textError}</p>
+          <p role="alert" className="ft-preview-note">{textError}</p>
         </div>
       )}
       {!missing && kind === 'text' && text === null && !textError && (

@@ -43,6 +43,10 @@ interface SidebarProps {
   documents: number;
   /** An agents folder is connected: show the team group. */
   agents: boolean;
+  /** The shell is the off-canvas drawer (below 1024px). */
+  drawer: boolean;
+  /** The content folder has no ICOR for Life 2 manifest (D2 section 2). */
+  unverified: boolean;
   route: Route;
   open: boolean;
   onToggle: () => void;
@@ -249,20 +253,77 @@ function TeamFlyout({ route, onNavigate }: { route: Route; onNavigate: () => voi
   );
 }
 
-export function Sidebar({ navTypes, documents, agents, route, open, onToggle, onNavigate, onOpenSearch }: SidebarProps) {
+export function Sidebar({ navTypes, documents, agents, drawer, unverified, route, open, onToggle, onNavigate, onOpenSearch }: SidebarProps) {
   // The pinned-top block sits ABOVE the Overview group as an ungrouped block;
   // it disappears while no module is attached to the 'top' section.
   const topModules = modulesForSection('top');
+  const navRef = useRef<HTMLElement | null>(null);
+
+  // A closed rail (off-canvas drawer, or the collapsed desktop rail) is out of
+  // the tab order and the accessibility tree (D6 H2). React 18 has no `inert`
+  // prop, so it is set on the element.
+  useEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+    if (open) el.removeAttribute('inert');
+    else el.setAttribute('inert', '');
+  }, [open]);
+
+  // The open drawer takes focus, keeps Tab inside, and Escape closes it and
+  // hands focus back to the menu button (D6 M4).
+  useEffect(() => {
+    if (!drawer || !open) return;
+    const el = navRef.current;
+    if (!el) return;
+    const focusables = () => Array.from(el.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    ));
+    (el.querySelector<HTMLElement>('.menu-button') ?? focusables()[0])?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onToggle();
+        window.dispatchEvent(new CustomEvent('cockpit:return-focus'));
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const list = focusables();
+      if (list.length === 0) return;
+      const first = list[0];
+      const last = list[list.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      } else if (!el.contains(document.activeElement)) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [drawer, open, onToggle]);
+
+  const closeFromScrim = () => {
+    onToggle();
+    window.dispatchEvent(new CustomEvent('cockpit:return-focus'));
+  };
 
   return (
     <>
       {/* Mobile scrim (only visible when the drawer is open on small screens). */}
       <div
         className={`sidebar-scrim ${open ? 'is-open' : ''}`}
-        onClick={onToggle}
+        onClick={closeFromScrim}
         aria-hidden="true"
       />
-      <nav className={`cockpit-sidebar ${open ? 'is-open' : ''}`} aria-label="Cockpit navigation">
+      <nav
+        ref={navRef}
+        className={`cockpit-sidebar ${open ? 'is-open' : ''}`}
+        aria-label="Cockpit navigation"
+      >
         <div className="sidebar-header">
           <span className="sidebar-brand-mark" aria-hidden="true">
             <InklineMark size={26} />
@@ -284,8 +345,8 @@ export function Sidebar({ navTypes, documents, agents, route, open, onToggle, on
           </button>
         </div>
 
-        {/* Global search trigger - opens the ⌘K command palette (FTS5 over note
-            titles AND bodies). Looks like a search field but is a button: the
+        {/* Global search trigger - opens the Cmd+K command palette (titles,
+            excerpts and frontmatter). Looks like a search field but is a button: the
             real input lives in the modal (focus trap + keyboard nav). */}
         <div className="sidebar-search">
           <button
@@ -375,6 +436,9 @@ export function Sidebar({ navTypes, documents, agents, route, open, onToggle, on
         </div>
 
         <div className="sidebar-footer">
+          {unverified && (
+            <a className="hub-kicker" href={hrefFor({ name: 'settings' })} onClick={onNavigate}>Unverified folder</a>
+          )}
           <p className="sidebar-footer-note">
             Read-only. Your notes stay in your folder; edit them in Obsidian.
           </p>

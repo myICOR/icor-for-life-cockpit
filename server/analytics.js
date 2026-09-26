@@ -65,6 +65,8 @@ export function teamAnalytics(ai, { from, to } = {}) {
         role: meta?.role ?? null,
         avatarPath: meta?.avatar ?? null,
         share: sessions ? r.sessions / sessions : 0,
+        // What the screen shows: a whole percent, rounded once, here (D6 H4).
+        sharePct: sessions ? Math.round((r.sessions / sessions) * 100) : 0,
       };
     })
     .sort((a, b) => b.sessions - a.sessions || a.name.localeCompare(b.name));
@@ -78,7 +80,7 @@ export function teamAnalytics(ai, { from, to } = {}) {
       sessions,
       specialists: agents.length,
       days: days.length,
-      meanPerSpecialist: agents.length ? sessions / agents.length : 0,
+      meanPerSpecialist: agents.length ? Math.round((sessions / agents.length) * 10) / 10 : 0,
     },
     agents,
     series,

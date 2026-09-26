@@ -250,3 +250,45 @@ test('L2: cross-site subresource requests are refused, same-origin ones marked',
   const typed = await api.get('/api/status', { headers: { 'Sec-Fetch-Site': 'none' } });
   assert.equal(typed.status, 200, 'a URL typed in the address bar still works');
 });
+
+// ---- D6 H1: a link to the Cockpit from another site opens the app ----------
+
+// Node's fetch writes its own Sec-Fetch-* headers, so these requests go
+// through node:http, which sends exactly the headers a browser would.
+async function raw(pathname, headers, method = 'GET') {
+  const http = await import('node:http');
+  const port = new URL(api.base).port;
+  return new Promise((resolve, reject) => {
+    const req = http.request({ host: '127.0.0.1', port, path: pathname, method, headers }, (res) => {
+      res.resume();
+      res.on('end', () => resolve({ status: res.statusCode, type: res.headers['content-type'] ?? '' }));
+    });
+    req.on('error', reject);
+    req.end();
+  });
+}
+
+test('H1: a cross-site top-level navigation to the app shell is allowed', async () => {
+  const nav = { 'Sec-Fetch-Site': 'cross-site', 'Sec-Fetch-Mode': 'navigate', 'Sec-Fetch-Dest': 'document' };
+  const shell = await raw('/', nav);
+  assert.equal(shell.status, 200);
+  assert.match(shell.type, /text\/(html|plain)/);
+  assert.equal((await raw('/', { ...nav, 'Sec-Fetch-Site': 'same-site' })).status, 200);
+  // Negative controls: everything that is not a document navigation stays refused.
+  assert.equal((await raw('/api/status', nav)).status, 403, 'a navigation to the API is not a shell load');
+  assert.equal((await raw('/api/asset?path=garden.png', { 'Sec-Fetch-Site': 'cross-site', 'Sec-Fetch-Mode': 'no-cors', 'Sec-Fetch-Dest': 'image' })).status, 403);
+  assert.equal((await raw('/', { ...nav, 'Sec-Fetch-Dest': 'iframe' })).status, 403, 'a cross-site iframe is not a top-level navigation');
+  assert.equal((await raw('/', nav, 'POST')).status, 403, 'only GET navigations pass');
+});
+
+test('M10: a relative folder path is refused in plain words', async () => {
+  const r = await api.get('/api/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Cockpit': '1' },
+    body: JSON.stringify({ contentRoot: 'relative/folder' }),
+  });
+  assert.equal(r.status, 400);
+  const body = await r.json();
+  assert.match(body.error, /^The ICOR for Life folder must be a full path/);
+  assert.equal(/contentRoot/.test(body.error), false, 'no internal field names on screen');
+});

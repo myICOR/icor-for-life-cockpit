@@ -313,6 +313,11 @@ export function HubView() {
     <div className="hub">
       <header className="hub-head">
         <p className="hub-date">{today}</p>
+        {status.content.ok && status.content.unverified && (
+          <a className="hub-kicker" href={hrefFor({ name: 'settings' })} title="No ICOR for Life 2 manifest was found in this folder">
+            Unverified folder
+          </a>
+        )}
         <h1 className="hub-title">My Life</h1>
         {data.inbox.captures > 0 && (
           <p className="hub-section-hint">

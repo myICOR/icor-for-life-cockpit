@@ -73,6 +73,9 @@ function walkMarkdown(absDir, { recursive = true, skipDirs = [] } = {}) {
       const abs = path.join(dir, e.name);
       if (e.isDirectory()) {
         if (recursive && !skipDirs.includes(abs)) stack.push(abs);
+      } else if (e.isFile() && e.name.toLowerCase() === 'readme.md') {
+        // A folder README explains the room; it is not a note (D6 M1).
+        continue;
       } else if (e.isFile() && e.name.toLowerCase().endsWith('.md')) {
         out.push(abs);
       }

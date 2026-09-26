@@ -90,9 +90,15 @@ export function createApp(store, { port = 4317 } = {}) {
   // D5 L2: no other site may load Cockpit responses as subresources (an <img>
   // or <iframe> on a foreign page would reveal which files exist). Browsers
   // send Sec-Fetch-Site; `none` is a URL typed or bookmarked by the user.
+  // D6 H1: a top-level GET navigation to the app shell (a link in a README or
+  // on a web page) is let through; it reveals nothing the page could read.
   app.use((req, res, next) => {
     const site = req.get('Sec-Fetch-Site');
-    if (site && site !== 'same-origin' && site !== 'none') return res.status(403).json({ error: 'forbidden' });
+    const isDocNav = req.method === 'GET'
+      && req.get('Sec-Fetch-Mode') === 'navigate'
+      && req.get('Sec-Fetch-Dest') === 'document'
+      && !req.path.startsWith('/api/');
+    if (site && site !== 'same-origin' && site !== 'none' && !isDocNav) return res.status(403).json({ error: 'forbidden' });
     res.set('Cross-Origin-Resource-Policy', 'same-origin');
     return next();
   });
@@ -184,6 +190,7 @@ export function createApp(store, { port = 4317 } = {}) {
     const counts = S.content ? conceptCounts(S.content) : null;
     return {
       content: Boolean(S.content),
+      unverified: Boolean(S.roots?.content?.ok && S.roots.content.unverified),
       agents: Boolean(S.agents),
       types: CONCEPTS
         .filter((c) => ['key_elements', 'goals', 'projects', 'habits', 'topics', 'people', 'companies', 'notes'].includes(c.key))
